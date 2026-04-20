@@ -1,0 +1,85 @@
+settings:
+  tokenizer: "cl100k_base"
+  metrics: ["tokens", "loc", "file_count", "chars"]
+  tokenization_strategy: "pure_content_only"
+  file_ordering: "alphabetical_stable"
+
+global_exclude:
+  - "**/spec/**"
+  - "**/test/**"
+  - "**/node_modules/**"
+  - "**/vendor/**"
+  - "**/.venv/**"
+  - "**/dist/**"
+  - "**/build/**"
+
+stacks:
+  fastapi:
+    metadata:
+      language: "python"
+      category: "api_first"
+      framework: "fastapi"
+      orm: "sqlalchemy"
+    root_path: "./stacks/fastapi-app"
+    handwritten:
+      domain:
+        - "models/**/*.py"
+        - "schemas/**/*.py"
+      api:
+        - "main.py"
+        - "routers/**/*.py"
+      persistence:
+        - "database.py"
+    operational_extras:
+      config:
+        - "requirements.txt"
+        - "alembic.ini"
+      migrations:
+        - "alembic/versions/**/*.py"
+
+  rails:
+    metadata:
+      language: "ruby"
+      category: "opinionated"
+      framework: "rails"
+      orm: "activerecord"
+    root_path: "./stacks/rails-app"
+    handwritten:
+      domain:
+        - "app/models/**/*.rb"
+      api:
+        - "app/controllers/**/*.rb"
+        - "config/routes.rb"
+      persistence:
+        - "app/models/**/*.rb"
+    operational_extras:
+      config:
+        - "Gemfile"
+        - "config/database.yml"
+        - "config/application.rb"
+      migrations:
+        - "db/migrate/**/*.rb"
+
+  express:
+    metadata:
+      language: "javascript"
+      category: "api_first"
+      framework: "express"
+      orm: "prisma"
+    root_path: "./stacks/express-app"
+    handwritten:
+      domain:
+        - "src/models/**/*.js"
+        - "src/schemas/**/*.js"
+      api:
+        - "src/app.js"
+        - "src/routes/**/*.js"
+        - "src/controllers/**/*.js"
+      persistence:
+        - "src/db/**/*.js"
+        - "prisma/schema.prisma"
+    operational_extras:
+      config:
+        - "package.json"
+      migrations:
+        - "prisma/migrations/**"
