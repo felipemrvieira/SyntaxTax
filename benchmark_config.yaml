@@ -50,8 +50,7 @@ stacks:
       api:
         - "app/controllers/**/*.rb"
         - "config/routes.rb"
-      persistence:
-        - "app/models/**/*.rb"
+      persistence: []
     operational_extras:
       config:
         - "Gemfile"

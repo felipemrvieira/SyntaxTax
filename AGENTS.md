@@ -11,7 +11,7 @@ Siga este documento rigorosamente antes de executar qualquer tarefa.
 
 ## Contexto do projeto
 
-Este repositório contém o projeto **StackSpeak Benchmark**, cujo objetivo é:
+Este repositório contém o projeto **SyntaxTax Benchmark**, cujo objetivo é:
 
 > Comparar o custo de tokens para LLMs ao implementar funcionalidades equivalentes em diferentes stacks web modernas.
 
