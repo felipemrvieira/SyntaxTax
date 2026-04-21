@@ -90,15 +90,15 @@ stacks:
     root_path: "./stacks/express-app"
     handwritten:
       domain:
-        - "src/models/**/*.js"
         - "src/schemas/**/*.js"
+        - "prisma/schema.prisma"
       api:
         - "src/app.js"
         - "src/routes/**/*.js"
         - "src/controllers/**/*.js"
+        - "src/serializers/**/*.js"
       persistence:
         - "src/db/**/*.js"
-        - "prisma/schema.prisma"
     operational_extras:
       config:
         - "package.json"

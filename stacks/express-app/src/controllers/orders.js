@@ -1,5 +1,5 @@
 const prisma = require("../db/prisma");
-const { serializeOrder } = require("../models/order");
+const { serializeOrder } = require("../serializers/order");
 const { validateOrder, validateOrderStatus } = require("../schemas/order");
 
 async function findDetailedOrder(orderId) {

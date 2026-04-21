@@ -59,3 +59,15 @@ Registrar métricas por:
 - categoria
 - view
 - stack
+
+## Interpretação da categoria `domain`
+
+A categoria `domain` deve refletir onde a modelagem estrutural e os contratos centrais do domínio realmente vivem em cada stack.
+
+Isso pode variar por ecossistema:
+
+- entidades ORM podem carregar a modelagem principal
+- schemas e contratos de validação podem fazer parte da definição de domínio
+- em stacks com Prisma, `prisma/schema.prisma` faz parte central dessa modelagem estrutural
+
+O objetivo da categorização é representar a função real dos arquivos, não forçar simetria visual entre stacks.
