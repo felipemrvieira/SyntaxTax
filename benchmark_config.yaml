@@ -59,6 +59,28 @@ stacks:
       migrations:
         - "db/migrate/**/*.rb"
 
+  sinatra:
+    metadata:
+      language: "ruby"
+      category: "api_first"
+      framework: "sinatra"
+      orm: "activerecord"
+    root_path: "./stacks/sinatra-app"
+    handwritten:
+      domain:
+        - "models/**/*.rb"
+      api:
+        - "app.rb"
+        - "routes/**/*.rb"
+      persistence:
+        - "database.rb"
+    operational_extras:
+      config:
+        - "Gemfile"
+        - "config.ru"
+      migrations:
+        - "db/migrate/**/*.rb"
+
   express:
     metadata:
       language: "javascript"
