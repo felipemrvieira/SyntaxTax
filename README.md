@@ -20,10 +20,17 @@ Comparar o custo textual de implementação de funcionalidades equivalentes em d
 - qualidade arquitetural absoluta
 - produtividade de time no longo prazo
 
+## Princípios do benchmark
+
+- equivalência funcional é obrigatória entre stacks
+- não adicionar features extras fora da spec
+- o foco é custo de contexto, não performance
+- fidelidade à stack é mais importante que concisão artificial
+
 ## Estrutura do repositório
 
-- `/docs` → documentação metodológica (fonte da verdade)
-- `/benchmark` → scripts de medição e validação
+- `/docs` → documentação metodológica
+- `/benchmark` → scripts de medição, coleta e validação
 - `/stacks` → implementações por stack
 - `/results` → resultados brutos e consolidados
 
@@ -31,18 +38,54 @@ Comparar o custo textual de implementação de funcionalidades equivalentes em d
 
 Leia os arquivos em `/docs` na ordem numérica antes de implementar qualquer coisa.
 
+## Como rodar o benchmark
+
+### Build do container
+
+```bash
+docker build -t syntaxtax-benchmark .
+```
+
+### Rodar medição
+
+```bash
+docker run --rm -v "$PWD:/app" syntaxtax-benchmark python benchmark/measure.py fastapi
+```
+
+### Rodar coleta
+
+```bash
+docker run --rm -v "$PWD:/app" syntaxtax-benchmark python benchmark/collect.py
+```
+
+### Rodar validação
+
+```bash
+docker run --rm --network host -v "$PWD:/app" syntaxtax-benchmark python benchmark/validate.py http://localhost:8000
+```
+
+## Fluxo de uso
+
+1. Implementar uma stack conforme a spec e a stack matrix.
+2. Rodar `validate.py` contra a stack em execução.
+3. Garantir `PASS` total na validação.
+4. Rodar `measure.py` para gerar o JSON bruto da stack.
+5. Rodar `collect.py` para consolidar os resultados.
+
+## Para agentes (Codex, etc)
+
+- ler [`AGENTS.md`](AGENTS.md) antes de qualquer ação
+- tratar `docs/` como fonte da verdade
+- não expandir escopo
+- seguir as fases do projeto
+- não implementar stacks fora da ordem definida
+
 ## Fases do projeto
 
 1. Infraestrutura metodológica
 2. Validação funcional
-3. Piloto (FastAPI, Rails, Express)
+3. Piloto
 4. Ajustes
 5. Execução completa do benchmark
 
-## Regra principal
-
-Nenhuma stack deve ser implementada fora das regras documentadas.
-
-## Instrução para agentes
-
-Comece sempre pela infraestrutura metodológica antes de implementar qualquer stack.
+Para regras detalhadas, consulte `AGENTS.md`, `benchmark_config.yaml` e os arquivos em `/docs`.
