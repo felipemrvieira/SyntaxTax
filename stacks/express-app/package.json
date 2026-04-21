@@ -1,0 +1,14 @@
+{
+  "name": "syntaxtax-express-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/app.js",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "express": "4.21.1",
+    "prisma": "5.22.0"
+  }
+}
