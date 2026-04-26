@@ -34,6 +34,24 @@ Comparar o custo textual de implementação de funcionalidades equivalentes em d
 - `/stacks` → implementações por stack
 - `/results` → resultados brutos e consolidados
 
+## Stack matrix atual
+
+### Rodada A — API-first / microframeworks
+
+- FastAPI + SQLAlchemy
+- Sinatra + ActiveRecord
+- Express + Prisma
+- Gin + GORM
+- Slim + PDO SQLite
+
+### Rodada B — frameworks mais estruturados / opinionados
+
+- Rails + ActiveRecord
+- Django + ORM nativo
+- NestJS + Prisma
+- Spring Boot + JPA
+- Laravel + Eloquent
+
 ## Ordem de leitura
 
 Leia os arquivos em `/docs` na ordem numérica antes de implementar qualquer coisa.
@@ -87,5 +105,21 @@ docker run --rm --network host -v "$PWD:/app" syntaxtax-benchmark python benchma
 3. Piloto
 4. Ajustes
 5. Execução completa do benchmark
+
+## Estado atual
+
+Já existem stacks implementadas para:
+
+- FastAPI
+- Sinatra
+- Express
+- Gin
+- Slim
+- Rails
+- Django
+- NestJS
+- Spring Boot
+
+Laravel foi registrado na matriz e na configuração como próxima stack de expansão.
 
 Para regras detalhadas, consulte `AGENTS.md`, `benchmark_config.yaml` e os arquivos em `/docs`.

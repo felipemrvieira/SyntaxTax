@@ -5,6 +5,8 @@
 - FastAPI + SQLAlchemy
 - Sinatra + ActiveRecord
 - Express + Prisma
+- Gin + GORM
+- Slim + PDO SQLite
 
 ## Rodada B — frameworks mais estruturados / opinionados
 
@@ -12,6 +14,25 @@
 - Django + ORM nativo
 - NestJS + Prisma
 - Spring Boot + JPA
+- Laravel + Eloquent
+
+## Estado atual do repositório
+
+Stacks já presentes no repositório:
+
+- FastAPI + SQLAlchemy
+- Sinatra + ActiveRecord
+- Express + Prisma
+- Gin + GORM
+- Slim + PDO SQLite
+- Rails + ActiveRecord
+- Django + ORM nativo
+- NestJS + Prisma
+- Spring Boot + JPA
+
+Stack adicionada à matriz para expansão futura:
+
+- Laravel + Eloquent
 
 ## Regra
 

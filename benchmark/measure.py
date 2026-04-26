@@ -6,7 +6,6 @@ import fnmatch
 import hashlib
 import importlib.metadata
 import json
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
@@ -27,15 +26,6 @@ RAW_RESULTS_DIR = ROOT_DIR / "results" / "raw"
 
 class MeasurementError(Exception):
     pass
-
-
-@dataclass(frozen=True)
-class FileMetrics:
-    tokens: int
-    loc: int
-    chars: int
-    size_bytes: int
-    file_sha256: str
 
 
 def load_config() -> dict[str, Any]:
@@ -64,6 +54,24 @@ def safe_package_version(distribution_name: str) -> str | None:
         return importlib.metadata.version(distribution_name)
     except importlib.metadata.PackageNotFoundError:
         return None
+
+
+def require_mapping(value: Any, context: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise MeasurementError(f"{context} must be a mapping.")
+    return value
+
+
+def require_list_of_strings(value: Any, context: str) -> list[str]:
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise MeasurementError(f"{context} must be a list of strings.")
+    return value
+
+
+def require_string(value: Any, context: str) -> str:
+    if not isinstance(value, str) or value == "":
+        raise MeasurementError(f"{context} must be a non-empty string.")
+    return value
 
 
 def stable_relpath(path: Path, root_path: Path) -> str:
@@ -112,14 +120,14 @@ def count_raw_text_lines(content: str) -> int:
     return len(content.splitlines())
 
 
-def calculate_file_metrics(content: str, payload: bytes, encoder: Any) -> FileMetrics:
-    return FileMetrics(
-        tokens=len(encoder.encode(content)),
-        loc=count_raw_text_lines(content),
-        chars=len(content),
-        size_bytes=len(payload),
-        file_sha256=hashlib.sha256(payload).hexdigest(),
-    )
+def calculate_file_metrics(content: str, payload: bytes, encoder: Any) -> dict[str, int | str]:
+    return {
+        "tokens": len(encoder.encode(content)),
+        "loc": count_raw_text_lines(content),
+        "chars": len(content),
+        "size_bytes": len(payload),
+        "file_sha256": hashlib.sha256(payload).hexdigest(),
+    }
 
 
 def empty_metrics() -> dict[str, int]:
@@ -142,21 +150,48 @@ def calculate_hashes(manifest_entries: list[dict[str, Any]], root_path: Path) ->
     return corpus.hexdigest(), manifest_sha256
 
 
+def extract_views(stack_config: dict[str, Any]) -> dict[str, dict[str, list[str]]]:
+    views: dict[str, dict[str, list[str]]] = {}
+
+    for key, value in stack_config.items():
+        if key in {"metadata", "root_path"}:
+            continue
+
+        categories = require_mapping(value, f"stacks.<stack>.{key}")
+        normalized_categories: dict[str, list[str]] = {}
+        for category_name, patterns in categories.items():
+            normalized_categories[category_name] = require_list_of_strings(
+                patterns,
+                f"stacks.<stack>.{key}.{category_name}",
+            )
+
+        views[key] = normalized_categories
+
+    if not views:
+        raise MeasurementError("Stack configuration must define at least one measurement view.")
+
+    return views
+
+
 def build_measurement(stack_id: str) -> dict[str, Any]:
     config = load_config()
-    settings = config.get("settings", {})
-    stacks = config.get("stacks", {})
-    exclude_patterns = list(config.get("global_exclude", []))
+    settings = require_mapping(config.get("settings"), "settings")
+    stacks = require_mapping(config.get("stacks"), "stacks")
+    exclude_patterns = require_list_of_strings(config.get("global_exclude", []), "global_exclude")
 
     if stack_id not in stacks:
         available = ", ".join(sorted(stacks))
         raise MeasurementError(f"Unknown stack '{stack_id}'. Available stacks: {available}")
 
     encoder = require_tokenizer(config)
-    stack_config = stacks[stack_id]
-    root_path = (ROOT_DIR / stack_config["root_path"]).resolve()
+    stack_config = require_mapping(stacks[stack_id], f"stacks.{stack_id}")
+    stack_views = extract_views(stack_config)
+    metadata = require_mapping(stack_config.get("metadata", {}), f"stacks.{stack_id}.metadata")
+    root_path = (ROOT_DIR / require_string(stack_config.get("root_path"), f"stacks.{stack_id}.root_path")).resolve()
     if not root_path.exists():
         raise MeasurementError(f"Stack root path does not exist: {root_path}")
+    if not root_path.is_dir():
+        raise MeasurementError(f"Stack root path is not a directory: {root_path}")
 
     warnings: list[str] = []
     manifest_entries: list[dict[str, Any]] = []
@@ -164,8 +199,7 @@ def build_measurement(stack_id: str) -> dict[str, Any]:
     view_payload: dict[str, Any] = {}
     overall_totals = empty_metrics()
 
-    for view_name in ("handwritten", "operational_extras"):
-        categories = stack_config.get(view_name, {})
+    for view_name, categories in stack_views.items():
         view_totals = empty_metrics()
         category_payload: dict[str, Any] = {}
 
@@ -196,10 +230,10 @@ def build_measurement(stack_id: str) -> dict[str, Any]:
                     content, payload = read_text_bytes(path)
                     metrics = calculate_file_metrics(content, payload, encoder)
                     file_totals = {
-                        "tokens": metrics.tokens,
-                        "loc": metrics.loc,
+                        "tokens": int(metrics["tokens"]),
+                        "loc": int(metrics["loc"]),
                         "file_count": 1,
-                        "chars": metrics.chars,
+                        "chars": int(metrics["chars"]),
                     }
                     add_metrics(category_totals, file_totals)
 
@@ -208,12 +242,12 @@ def build_measurement(stack_id: str) -> dict[str, Any]:
                             "path": relpath,
                             "view": view_name,
                             "category": category_name,
-                            "tokens": metrics.tokens,
-                            "loc": metrics.loc,
-                            "chars": metrics.chars,
+                            "tokens": int(metrics["tokens"]),
+                            "loc": int(metrics["loc"]),
+                            "chars": int(metrics["chars"]),
                             "file_count": 1,
-                            "file_sha256": metrics.file_sha256,
-                            "size_bytes": metrics.size_bytes,
+                            "file_sha256": str(metrics["file_sha256"]),
+                            "size_bytes": int(metrics["size_bytes"]),
                         }
                     )
                     manifest_entries.append(category_files[-1])
@@ -242,7 +276,7 @@ def build_measurement(stack_id: str) -> dict[str, Any]:
 
     return {
         "stack_id": stack_id,
-        "metadata": dict(stack_config.get("metadata", {})),
+        "metadata": dict(metadata),
         "tooling": {
             "python_version": sys.version.split()[0],
             "tokenizer": settings.get("tokenizer"),

@@ -28,3 +28,31 @@ Ajustar metodologia, filtros e schema com base no piloto
 ## Fase 5
 
 Executar as rodadas completas
+
+- Sinatra
+- Gin
+- Slim
+- Django
+- NestJS
+- Spring Boot
+- Laravel
+
+## Estado atual
+
+Infraestrutura metodológica e validador funcional já existem no repositório.
+
+Stacks já implementadas:
+
+- FastAPI
+- Sinatra
+- Express
+- Gin
+- Slim
+- Rails
+- Django
+- NestJS
+- Spring Boot
+
+Próxima expansão registrada na matriz:
+
+- Laravel

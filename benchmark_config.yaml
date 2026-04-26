@@ -59,6 +59,119 @@ stacks:
       migrations:
         - "db/migrate/**/*.rb"
 
+  django:
+    metadata:
+      language: "python"
+      category: "opinionated"
+      framework: "django"
+      orm: "django_orm"
+    root_path: "./stacks/django-app"
+    handwritten:
+      domain:
+        - "app/models.py"
+        - "app/serializers.py"
+      api:
+        - "app/views.py"
+        - "app/urls.py"
+      persistence: []
+    operational_extras:
+      config:
+        - "manage.py"
+        - "requirements.txt"
+        - "config/settings.py"
+        - "config/urls.py"
+        - "config/asgi.py"
+        - "config/wsgi.py"
+      migrations:
+        - "app/migrations/**/*.py"
+
+  nestjs:
+    metadata:
+      language: "typescript"
+      category: "opinionated"
+      framework: "nestjs"
+      orm: "prisma"
+    root_path: "./stacks/nestjs-app"
+    handwritten:
+      domain:
+        - "prisma/schema.prisma"
+        - "src/**/*.dto.ts"
+      api:
+        - "src/main.ts"
+        - "src/app.module.ts"
+        - "src/users/**/*.controller.ts"
+        - "src/users/**/*.module.ts"
+        - "src/users/**/*.service.ts"
+        - "src/products/**/*.controller.ts"
+        - "src/products/**/*.module.ts"
+        - "src/products/**/*.service.ts"
+        - "src/orders/**/*.controller.ts"
+        - "src/orders/**/*.module.ts"
+        - "src/orders/**/*.service.ts"
+      persistence:
+        - "src/prisma/**/*.ts"
+    operational_extras:
+      config:
+        - "package.json"
+        - "package-lock.json"
+        - "tsconfig.json"
+      migrations:
+        - "prisma/migrations/**"
+
+  springboot:
+    metadata:
+      language: "java"
+      category: "opinionated"
+      framework: "springboot"
+      orm: "spring_data_jpa"
+    root_path: "./stacks/springboot-app"
+    handwritten:
+      domain:
+        - "src/main/java/com/syntaxtax/benchmark/users/User.java"
+        - "src/main/java/com/syntaxtax/benchmark/users/CreateUserRequest.java"
+        - "src/main/java/com/syntaxtax/benchmark/products/Product.java"
+        - "src/main/java/com/syntaxtax/benchmark/products/CreateProductRequest.java"
+        - "src/main/java/com/syntaxtax/benchmark/orders/Order.java"
+        - "src/main/java/com/syntaxtax/benchmark/orders/OrderItem.java"
+        - "src/main/java/com/syntaxtax/benchmark/orders/dto/**/*.java"
+      api:
+        - "src/main/java/com/syntaxtax/benchmark/Application.java"
+        - "src/main/java/com/syntaxtax/benchmark/config/**/*.java"
+        - "src/main/java/com/syntaxtax/benchmark/users/UserController.java"
+        - "src/main/java/com/syntaxtax/benchmark/products/ProductController.java"
+        - "src/main/java/com/syntaxtax/benchmark/orders/OrderController.java"
+        - "src/main/java/com/syntaxtax/benchmark/orders/OrderService.java"
+      persistence:
+        - "src/main/java/com/syntaxtax/benchmark/**/*Repository.java"
+    operational_extras:
+      config:
+        - "pom.xml"
+        - "src/main/resources/application.properties"
+      migrations: []
+
+  laravel:
+    metadata:
+      language: "php"
+      category: "opinionated"
+      framework: "laravel"
+      orm: "eloquent"
+    root_path: "./stacks/laravel-app"
+    handwritten:
+      domain:
+        - "app/Models/**/*.php"
+      api:
+        - "routes/api.php"
+        - "app/Http/Controllers/**/*.php"
+      persistence:
+        - "database/migrations/**/*.php"
+    operational_extras:
+      config:
+        - "composer.json"
+        - "composer.lock"
+        - "bootstrap/app.php"
+        - "config/**/*.php"
+      migrations: []
+
   sinatra:
     metadata:
       language: "ruby"
@@ -104,3 +217,46 @@ stacks:
         - "package.json"
       migrations:
         - "prisma/migrations/**"
+
+  gin:
+    metadata:
+      language: "go"
+      category: "api_first"
+      framework: "gin"
+      orm: "gorm"
+    root_path: "./stacks/gin-app"
+    handwritten:
+      domain:
+        - "models/**/*.go"
+        - "schemas/**/*.go"
+      api:
+        - "handlers/**/*.go"
+        - "main.go"
+      persistence:
+        - "db/**/*.go"
+    operational_extras:
+      config:
+        - "go.mod"
+        - "go.sum"
+      migrations: []
+
+  slim:
+    metadata:
+      language: "php"
+      category: "api_first"
+      framework: "slim"
+      orm: "pdo_sqlite"
+    root_path: "./stacks/slim-app"
+    handwritten:
+      domain: []
+      api:
+        - "public/index.php"
+        - "config/*.php"
+        - "src/Handlers/**/*.php"
+      persistence:
+        - "src/Db/**/*.php"
+    operational_extras:
+      config:
+        - "composer.json"
+        - "composer.lock"
+      migrations: []
