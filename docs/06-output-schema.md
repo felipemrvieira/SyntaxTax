@@ -39,7 +39,7 @@ Os campos obrigatórios no topo do documento são:
   "audit": {
     "generated_at": "2026-04-20T12:00:00Z",
     "config_path": "benchmark_config.yaml",
-    "stack_root": "stacks/fastapi-app",
+    "stack_root": "stacks/api-first/fastapi-app",
     "corpus_sha256": "9a2f0d...",
     "manifest_sha256": "59c3ab..."
   },

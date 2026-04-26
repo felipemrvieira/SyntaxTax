@@ -20,7 +20,7 @@ stacks:
       category: "api_first"
       framework: "fastapi"
       orm: "sqlalchemy"
-    root_path: "./stacks/fastapi-app"
+    root_path: "./stacks/api-first/fastapi-app"
     handwritten:
       domain:
         - "models/**/*.py"
@@ -43,7 +43,7 @@ stacks:
       category: "opinionated"
       framework: "rails"
       orm: "activerecord"
-    root_path: "./stacks/rails-app"
+    root_path: "./stacks/opinionated/rails-app"
     handwritten:
       domain:
         - "app/models/**/*.rb"
@@ -65,7 +65,7 @@ stacks:
       category: "opinionated"
       framework: "django"
       orm: "django_orm"
-    root_path: "./stacks/django-app"
+    root_path: "./stacks/opinionated/django-app"
     handwritten:
       domain:
         - "app/models.py"
@@ -91,7 +91,7 @@ stacks:
       category: "opinionated"
       framework: "nestjs"
       orm: "prisma"
-    root_path: "./stacks/nestjs-app"
+    root_path: "./stacks/opinionated/nestjs-app"
     handwritten:
       domain:
         - "prisma/schema.prisma"
@@ -124,7 +124,7 @@ stacks:
       category: "opinionated"
       framework: "springboot"
       orm: "spring_data_jpa"
-    root_path: "./stacks/springboot-app"
+    root_path: "./stacks/opinionated/springboot-app"
     handwritten:
       domain:
         - "src/main/java/com/syntaxtax/benchmark/users/User.java"
@@ -155,7 +155,7 @@ stacks:
       category: "opinionated"
       framework: "laravel"
       orm: "eloquent"
-    root_path: "./stacks/laravel-app"
+    root_path: "./stacks/opinionated/laravel-app"
     handwritten:
       domain:
         - "app/Models/**/*.php"
@@ -178,7 +178,7 @@ stacks:
       category: "api_first"
       framework: "sinatra"
       orm: "activerecord"
-    root_path: "./stacks/sinatra-app"
+    root_path: "./stacks/api-first/sinatra-app"
     handwritten:
       domain:
         - "models/**/*.rb"
@@ -200,7 +200,7 @@ stacks:
       category: "api_first"
       framework: "express"
       orm: "prisma"
-    root_path: "./stacks/express-app"
+    root_path: "./stacks/api-first/express-app"
     handwritten:
       domain:
         - "src/schemas/**/*.js"
@@ -224,7 +224,7 @@ stacks:
       category: "api_first"
       framework: "gin"
       orm: "gorm"
-    root_path: "./stacks/gin-app"
+    root_path: "./stacks/api-first/gin-app"
     handwritten:
       domain:
         - "models/**/*.go"
@@ -246,7 +246,7 @@ stacks:
       category: "api_first"
       framework: "slim"
       orm: "pdo_sqlite"
-    root_path: "./stacks/slim-app"
+    root_path: "./stacks/api-first/slim-app"
     handwritten:
       domain: []
       api:

@@ -31,7 +31,9 @@ Comparar o custo textual de implementação de funcionalidades equivalentes em d
 
 - `/docs` → documentação metodológica
 - `/benchmark` → scripts de medição, coleta e validação
-- `/stacks` → implementações por stack
+- `/stacks` → implementações por stack, separadas por categoria metodológica
+  - `/stacks/api-first`
+  - `/stacks/opinionated`
 - `/results` → resultados brutos e consolidados
 
 ## Stack matrix atual
