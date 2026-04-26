@@ -121,7 +121,6 @@ Já existem stacks implementadas para:
 - Django
 - NestJS
 - Spring Boot
-
-Laravel foi registrado na matriz e na configuração como próxima stack de expansão.
+- Laravel
 
 Para regras detalhadas, consulte `AGENTS.md`, `benchmark_config.yaml` e os arquivos em `/docs`.

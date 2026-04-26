@@ -29,9 +29,6 @@ Stacks já presentes no repositório:
 - Django + ORM nativo
 - NestJS + Prisma
 - Spring Boot + JPA
-
-Stack adicionada à matriz para expansão futura:
-
 - Laravel + Eloquent
 
 ## Regra

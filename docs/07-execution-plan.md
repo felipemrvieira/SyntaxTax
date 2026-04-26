@@ -52,7 +52,4 @@ Stacks já implementadas:
 - Django
 - NestJS
 - Spring Boot
-
-Próxima expansão registrada na matriz:
-
 - Laravel
