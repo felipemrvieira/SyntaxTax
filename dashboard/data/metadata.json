@@ -1,0 +1,17 @@
+{
+  "stack_count": 10,
+  "stacks": [
+    "django",
+    "express",
+    "fastapi",
+    "gin",
+    "laravel",
+    "nestjs",
+    "rails",
+    "sinatra",
+    "slim",
+    "springboot"
+  ],
+  "latest_generated_at": "2026-04-26T13:48:51Z",
+  "warning_count": 0
+}
