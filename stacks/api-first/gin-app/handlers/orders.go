@@ -113,7 +113,7 @@ func RegisterOrderRoutes(router gin.IRouter, db *gorm.DB) {
 
 	router.GET("/orders", func(c *gin.Context) {
 		var orders []models.Order
-		if err := db.Preload("User").Preload("Items", orderedItems).Order("id asc").Find(&orders).Error; err != nil {
+		if err := db.Preload("User").Preload("Items", orderedItems).Preload("Items.Product").Order("id asc").Find(&orders).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not list orders"})
 			return
 		}
@@ -211,7 +211,7 @@ func orderedItems(db *gorm.DB) *gorm.DB {
 
 func loadOrder(db *gorm.DB, id uint) (models.Order, error) {
 	var order models.Order
-	err := db.Preload("User").Preload("Items", orderedItems).First(&order, id).Error
+	err := db.Preload("User").Preload("Items", orderedItems).Preload("Items.Product").First(&order, id).Error
 	return order, err
 }
 

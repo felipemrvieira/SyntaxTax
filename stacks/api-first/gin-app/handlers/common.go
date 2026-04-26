@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -9,7 +12,18 @@ import (
 
 func bindJSON(c *gin.Context, payload any) bool {
 	if err := c.ShouldBindJSON(payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": "Invalid JSON"})
+		var syntaxError *json.SyntaxError
+		var typeError *json.UnmarshalTypeError
+
+		switch {
+		case errors.Is(err, io.EOF), errors.As(err, &syntaxError):
+			c.JSON(http.StatusBadRequest, gin.H{"detail": "Invalid JSON"})
+		case errors.As(err, &typeError):
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Invalid request body"})
+		default:
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Invalid request body"})
+		}
+
 		return false
 	}
 
@@ -19,7 +33,7 @@ func bindJSON(c *gin.Context, payload any) bool {
 func parseUintParam(c *gin.Context, name string) (uint, bool) {
 	value, err := strconv.ParseUint(c.Param(name), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"detail": "Resource not found"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Invalid resource id"})
 		return 0, false
 	}
 

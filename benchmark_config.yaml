@@ -30,12 +30,13 @@ stacks:
         - "routers/**/*.py"
       persistence:
         - "database.py"
+        - "alembic/versions/**/*.py"
     operational_extras:
       config:
         - "requirements.txt"
         - "alembic.ini"
-      migrations:
-        - "alembic/versions/**/*.py"
+        - "alembic/env.py"
+      migrations: []
 
   rails:
     metadata:
@@ -50,14 +51,14 @@ stacks:
       api:
         - "app/controllers/**/*.rb"
         - "config/routes.rb"
-      persistence: []
+      persistence:
+        - "db/migrate/**/*.rb"
     operational_extras:
       config:
         - "Gemfile"
         - "config/database.yml"
         - "config/application.rb"
-      migrations:
-        - "db/migrate/**/*.rb"
+      migrations: []
 
   django:
     metadata:
@@ -73,7 +74,8 @@ stacks:
       api:
         - "app/views.py"
         - "app/urls.py"
-      persistence: []
+      persistence:
+        - "app/migrations/**/*.py"
     operational_extras:
       config:
         - "manage.py"
@@ -82,8 +84,7 @@ stacks:
         - "config/urls.py"
         - "config/asgi.py"
         - "config/wsgi.py"
-      migrations:
-        - "app/migrations/**/*.py"
+      migrations: []
 
   nestjs:
     metadata:
@@ -110,13 +111,13 @@ stacks:
         - "src/orders/**/*.service.ts"
       persistence:
         - "src/prisma/**/*.ts"
+        - "prisma/migrations/**"
     operational_extras:
       config:
         - "package.json"
         - "package-lock.json"
         - "tsconfig.json"
-      migrations:
-        - "prisma/migrations/**"
+      migrations: []
 
   springboot:
     metadata:
@@ -143,6 +144,7 @@ stacks:
         - "src/main/java/com/syntaxtax/benchmark/orders/OrderService.java"
       persistence:
         - "src/main/java/com/syntaxtax/benchmark/**/*Repository.java"
+        - "src/main/resources/schema.sql"
     operational_extras:
       config:
         - "pom.xml"
@@ -187,12 +189,12 @@ stacks:
         - "routes/**/*.rb"
       persistence:
         - "database.rb"
+        - "db/migrate/**/*.rb"
     operational_extras:
       config:
         - "Gemfile"
         - "config.ru"
-      migrations:
-        - "db/migrate/**/*.rb"
+      migrations: []
 
   express:
     metadata:
@@ -212,11 +214,11 @@ stacks:
         - "src/serializers/**/*.js"
       persistence:
         - "src/db/**/*.js"
+        - "prisma/migrations/**"
     operational_extras:
       config:
         - "package.json"
-      migrations:
-        - "prisma/migrations/**"
+      migrations: []
 
   gin:
     metadata:
@@ -234,6 +236,7 @@ stacks:
         - "main.go"
       persistence:
         - "db/**/*.go"
+        - "db/migrations/**/*.sql"
     operational_extras:
       config:
         - "go.mod"
@@ -255,6 +258,7 @@ stacks:
         - "src/Handlers/**/*.php"
       persistence:
         - "src/Db/**/*.php"
+        - "database/migrations/**/*.sql"
     operational_extras:
       config:
         - "composer.json"

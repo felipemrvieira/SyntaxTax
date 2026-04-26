@@ -15,50 +15,50 @@ final class Connection
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $pdo->exec('PRAGMA foreign_keys = ON');
 
-        self::setupSchema($pdo);
+        self::runMigrations($pdo, dirname($databasePath) . '/database/migrations');
 
         return $pdo;
     }
 
-    private static function setupSchema(PDO $pdo): void
+    private static function runMigrations(PDO $pdo, string $migrationsPath): void
     {
-        $pdo->exec(
-            'CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE
-            )'
-        );
+        $pdo->exec('CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)');
 
-        $pdo->exec(
-            'CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                price REAL NOT NULL
-            )'
-        );
+        $files = glob($migrationsPath . '/*.sql');
+        if ($files === false) {
+            return;
+        }
 
-        $pdo->exec(
-            'CREATE TABLE IF NOT EXISTS orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                total REAL NOT NULL DEFAULT 0,
-                status TEXT NOT NULL DEFAULT "created",
-                created_at TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )'
-        );
+        sort($files, SORT_STRING);
 
-        $pdo->exec(
-            'CREATE TABLE IF NOT EXISTS order_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                order_id INTEGER NOT NULL,
-                product_id INTEGER NOT NULL,
-                quantity INTEGER NOT NULL,
-                unit_price REAL NOT NULL,
-                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-                FOREIGN KEY (product_id) REFERENCES products(id)
-            )'
-        );
+        foreach ($files as $file) {
+            $version = basename($file);
+            $statement = $pdo->prepare('SELECT 1 FROM schema_migrations WHERE version = :version');
+            $statement->execute(['version' => $version]);
+
+            if ($statement->fetchColumn() !== false) {
+                continue;
+            }
+
+            $sql = file_get_contents($file);
+            if ($sql === false) {
+                throw new \RuntimeException('Could not read migration file: ' . $file);
+            }
+
+            $pdo->beginTransaction();
+
+            try {
+                $pdo->exec($sql);
+                $recordStatement = $pdo->prepare('INSERT INTO schema_migrations (version) VALUES (:version)');
+                $recordStatement->execute(['version' => $version]);
+                $pdo->commit();
+            } catch (\Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                throw $exception;
+            }
+        }
     }
 }

@@ -20,7 +20,10 @@ def load_order(db: Session, order_id: int) -> Order | None:
     statement = (
         select(Order)
         .where(Order.id == order_id)
-        .options(selectinload(Order.user), selectinload(Order.items))
+        .options(
+            selectinload(Order.user),
+            selectinload(Order.items).selectinload(OrderItem.product),
+        )
     )
     return db.scalars(statement).first()
 
@@ -63,7 +66,10 @@ def create_order(payload: OrderCreate, db: DbSession) -> Order:
 
 @router.get("", response_model=list[OrderRead])
 def list_orders(db: DbSession) -> list[Order]:
-    statement = select(Order).order_by(Order.id).options(selectinload(Order.user), selectinload(Order.items))
+    statement = select(Order).order_by(Order.id).options(
+        selectinload(Order.user),
+        selectinload(Order.items).selectinload(OrderItem.product),
+    )
     return list(db.scalars(statement))
 
 

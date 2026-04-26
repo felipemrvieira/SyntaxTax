@@ -3,6 +3,7 @@ package com.syntaxtax.benchmark.config;
 import java.util.Map;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -38,5 +39,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, String>> handleEmptyResult() {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(Map.of("detail", "Resource not found"));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation() {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            .body(Map.of("detail", "Email has already been taken"));
     }
 }

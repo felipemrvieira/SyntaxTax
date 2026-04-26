@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 
-from database import Base, engine
-from models import order, order_item, product, user  # noqa: F401
 from routers.orders import router as orders_router
 from routers.products import router as products_router
 from routers.users import router as users_router
@@ -11,7 +12,8 @@ from routers.users import router as users_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    alembic_config = Config(str(Path(__file__).with_name("alembic.ini")))
+    command.upgrade(alembic_config, "head")
     yield
 
 
