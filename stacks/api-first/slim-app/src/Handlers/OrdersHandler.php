@@ -13,6 +13,15 @@ use Throwable;
 
 final class OrdersHandler
 {
+    private const VALID_STATUSES = ['created', 'paid', 'shipped', 'cancelled'];
+
+    private const ALLOWED_STATUS_TRANSITIONS = [
+        'created' => ['paid', 'cancelled'],
+        'paid' => ['shipped', 'cancelled'],
+        'shipped' => [],
+        'cancelled' => [],
+    ];
+
     public function __construct(private readonly PDO $pdo)
     {
     }
@@ -122,9 +131,36 @@ final class OrdersHandler
 
     public function list(Request $request, Response $response): Response
     {
-        $statement = $this->pdo->query('SELECT id FROM orders ORDER BY id ASC');
-        $orders = [];
+        $params = $request->getQueryParams();
+        $conditions = [];
+        $bindings = [];
 
+        if (array_key_exists('status', $params)) {
+            if (!is_string($params['status']) || !in_array($params['status'], self::VALID_STATUSES, true)) {
+                return JsonResponse::create($response, 422, ['detail' => "Query parameter 'status' is invalid"]);
+            }
+            $conditions[] = 'status = :status';
+            $bindings['status'] = $params['status'];
+        }
+
+        if (array_key_exists('user_id', $params)) {
+            if (!is_numeric($params['user_id']) || (int) $params['user_id'] <= 0) {
+                return JsonResponse::create($response, 422, ['detail' => "Query parameter 'user_id' is invalid"]);
+            }
+            $conditions[] = 'user_id = :user_id';
+            $bindings['user_id'] = (int) $params['user_id'];
+        }
+
+        $sql = 'SELECT id FROM orders';
+        if ($conditions !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+        $sql .= ' ORDER BY id ASC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($bindings);
+
+        $orders = [];
         foreach ($statement->fetchAll() as $row) {
             $order = $this->findOrder((int) $row['id']);
             if ($order !== null) {
@@ -155,10 +191,18 @@ final class OrdersHandler
         if (!is_string($payload['status'] ?? null) || trim($payload['status']) === '') {
             return JsonResponse::create($response, 422, ['detail' => "Field 'status' is required"]);
         }
+        if (!in_array($payload['status'], self::VALID_STATUSES, true)) {
+            return JsonResponse::create($response, 422, ['detail' => "Field 'status' is invalid"]);
+        }
 
         $orderId = (int) $args['id'];
-        if ($this->findOrder($orderId) === null) {
+        $order = $this->findOrder($orderId);
+        if ($order === null) {
             return JsonResponse::create($response, 404, ['detail' => 'Order not found']);
+        }
+
+        if (!in_array($payload['status'], self::ALLOWED_STATUS_TRANSITIONS[$order['status']], true)) {
+            return JsonResponse::create($response, 409, ['detail' => 'Invalid order status transition']);
         }
 
         $statement = $this->pdo->prepare('UPDATE orders SET status = :status WHERE id = :id');
@@ -167,12 +211,12 @@ final class OrdersHandler
             'id' => $orderId,
         ]);
 
-        $order = $this->findOrder($orderId);
-        if ($order === null) {
+        $updatedOrder = $this->findOrder($orderId);
+        if ($updatedOrder === null) {
             return JsonResponse::create($response, 500, ['detail' => 'Could not load order']);
         }
 
-        return JsonResponse::create($response, 200, $order);
+        return JsonResponse::create($response, 200, $updatedOrder);
     }
 
     private function findUser(int $id): ?array
@@ -209,12 +253,22 @@ final class OrdersHandler
         }
 
         $itemsStatement = $this->pdo->prepare(
-            'SELECT product_id, quantity, unit_price
-             FROM order_items
-             WHERE order_id = :order_id
-             ORDER BY id ASC'
+            'SELECT oi.product_id, p.name AS product_name, oi.quantity, oi.unit_price
+             FROM order_items oi
+             JOIN products p ON p.id = oi.product_id
+             WHERE oi.order_id = :order_id
+             ORDER BY oi.id ASC'
         );
         $itemsStatement->execute(['order_id' => $id]);
+        $items = array_map(
+            static fn (array $item): array => [
+                'product_id' => (int) $item['product_id'],
+                'product_name' => $item['product_name'],
+                'quantity' => (int) $item['quantity'],
+                'unit_price' => (float) $item['unit_price'],
+            ],
+            $itemsStatement->fetchAll()
+        );
 
         return [
             'id' => (int) $order['id'],
@@ -222,14 +276,8 @@ final class OrdersHandler
                 'id' => (int) $order['user_id'],
                 'name' => $order['user_name'],
             ],
-            'items' => array_map(
-                static fn (array $item): array => [
-                    'product_id' => (int) $item['product_id'],
-                    'quantity' => (int) $item['quantity'],
-                    'unit_price' => (float) $item['unit_price'],
-                ],
-                $itemsStatement->fetchAll()
-            ),
+            'items' => $items,
+            'item_count' => count($items),
             'total' => (float) $order['total'],
             'status' => $order['status'],
             'created_at' => $order['created_at'],

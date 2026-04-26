@@ -96,6 +96,11 @@ def find_by_id(items: list[Any], item_id: int, context: str) -> dict[str, Any]:
     raise ValidationFailure(f"{context} did not include item with id={item_id}")
 
 
+def require_created(mapping: dict[str, Any], key: str, context: str) -> dict[str, Any]:
+    expect(key in mapping, context)
+    return mapping[key]
+
+
 def assert_order_payload(
     payload: Any,
     context: str,
@@ -205,15 +210,17 @@ def run_validation(base_url: str) -> dict[str, Any]:
         users["secondary"] = user_2
 
     def test_list_users() -> None:
+        primary = require_created(users, "primary", "create_users must succeed before list_users")
+        secondary = require_created(users, "secondary", "create_users must succeed before list_users")
         payload = request_json(session, "GET", join_url(base_url, "/users"), expected_statuses={200})
         returned_users = require_list(payload, "list_users response")
-        primary_id = users["primary"]["id"]
-        secondary_id = users["secondary"]["id"]
+        primary_id = primary["id"]
+        secondary_id = secondary["id"]
         expect(any(isinstance(item, dict) and item.get("id") == primary_id for item in returned_users), "list_users did not include primary user")
         expect(any(isinstance(item, dict) and item.get("id") == secondary_id for item in returned_users), "list_users did not include secondary user")
 
     def test_get_user_by_id() -> None:
-        user_id = users["primary"]["id"]
+        user_id = require_created(users, "primary", "create_users must succeed before get_user_by_id")["id"]
         payload = request_json(
             session,
             "GET",
@@ -225,12 +232,13 @@ def run_validation(base_url: str) -> dict[str, Any]:
         expect(user["id"] == user_id, "get_user_by_id returned unexpected id")
 
     def test_reject_duplicate_user_email() -> None:
+        primary = require_created(users, "primary", "create_users must succeed before reject_duplicate_user_email")
         payload = request_json(
             session,
             "POST",
             join_url(base_url, "/users"),
             expected_statuses={409},
-            json_body={"name": "Felipe Clone", "email": users["primary"]["email"]},
+            json_body={"name": "Felipe Clone", "email": primary["email"]},
         )
         expect(payload is not None, "reject_duplicate_user_email must return a JSON body")
 
@@ -282,6 +290,9 @@ def run_validation(base_url: str) -> dict[str, Any]:
         expect(payload is not None, "reject_product_with_invalid_price must return a JSON body")
 
     def test_filter_products_by_min_price() -> None:
+        notebook = require_created(products, "notebook", "create_products must succeed before filter_products_by_min_price")
+        keyboard = require_created(products, "keyboard", "create_products must succeed before filter_products_by_min_price")
+        mouse = require_created(products, "mouse", "create_products must succeed before filter_products_by_min_price")
         payload = request_json(
             session,
             "GET",
@@ -297,11 +308,14 @@ def run_validation(base_url: str) -> dict[str, Any]:
             require_keys(product, ["id", "name", "price"], "filter_products_by_min_price item")
             returned_ids.add(require_int(product["id"], "filter_products_by_min_price item field 'id'"))
             expect(require_positive_number(product["price"], "filter_products_by_min_price item field 'price'") >= 100, "filter_products_by_min_price returned a product below the lower bound")
-        expect(products["mouse"]["id"] not in returned_ids, "filter_products_by_min_price included the cheap product")
-        expect(products["keyboard"]["id"] in returned_ids, "filter_products_by_min_price did not include the middle product")
-        expect(products["notebook"]["id"] in returned_ids, "filter_products_by_min_price did not include the expensive product")
+        expect(mouse["id"] not in returned_ids, "filter_products_by_min_price included the cheap product")
+        expect(keyboard["id"] in returned_ids, "filter_products_by_min_price did not include the middle product")
+        expect(notebook["id"] in returned_ids, "filter_products_by_min_price did not include the expensive product")
 
     def test_filter_products_by_max_price() -> None:
+        notebook = require_created(products, "notebook", "create_products must succeed before filter_products_by_max_price")
+        keyboard = require_created(products, "keyboard", "create_products must succeed before filter_products_by_max_price")
+        mouse = require_created(products, "mouse", "create_products must succeed before filter_products_by_max_price")
         payload = request_json(
             session,
             "GET",
@@ -317,11 +331,14 @@ def run_validation(base_url: str) -> dict[str, Any]:
             require_keys(product, ["id", "name", "price"], "filter_products_by_max_price item")
             returned_ids.add(require_int(product["id"], "filter_products_by_max_price item field 'id'"))
             expect(require_positive_number(product["price"], "filter_products_by_max_price item field 'price'") <= 200, "filter_products_by_max_price returned a product above the upper bound")
-        expect(products["notebook"]["id"] not in returned_ids, "filter_products_by_max_price included the expensive product")
-        expect(products["mouse"]["id"] in returned_ids, "filter_products_by_max_price did not include the cheap product")
-        expect(products["keyboard"]["id"] in returned_ids, "filter_products_by_max_price did not include the middle product")
+        expect(notebook["id"] not in returned_ids, "filter_products_by_max_price included the expensive product")
+        expect(mouse["id"] in returned_ids, "filter_products_by_max_price did not include the cheap product")
+        expect(keyboard["id"] in returned_ids, "filter_products_by_max_price did not include the middle product")
 
     def test_filter_products_by_price_range() -> None:
+        notebook = require_created(products, "notebook", "create_products must succeed before filter_products_by_price_range")
+        keyboard = require_created(products, "keyboard", "create_products must succeed before filter_products_by_price_range")
+        mouse = require_created(products, "mouse", "create_products must succeed before filter_products_by_price_range")
         payload = request_json(
             session,
             "GET",
@@ -338,9 +355,9 @@ def run_validation(base_url: str) -> dict[str, Any]:
             price = require_positive_number(product["price"], "filter_products_by_price_range item field 'price'")
             expect(100 <= price <= 200, "filter_products_by_price_range returned an item outside the requested range")
             returned_ids.add(require_int(product["id"], "filter_products_by_price_range item field 'id'"))
-        expect(products["keyboard"]["id"] in returned_ids, "filter_products_by_price_range did not include the middle product")
-        expect(products["mouse"]["id"] not in returned_ids, "filter_products_by_price_range included the cheap product")
-        expect(products["notebook"]["id"] not in returned_ids, "filter_products_by_price_range included the expensive product")
+        expect(keyboard["id"] in returned_ids, "filter_products_by_price_range did not include the middle product")
+        expect(mouse["id"] not in returned_ids, "filter_products_by_price_range included the cheap product")
+        expect(notebook["id"] not in returned_ids, "filter_products_by_price_range included the expensive product")
 
     def test_reject_invalid_product_filters() -> None:
         payload_1 = request_json(
@@ -362,39 +379,44 @@ def run_validation(base_url: str) -> dict[str, Any]:
         expect(payload_2 is not None, "reject_invalid_product_filters max_price must return a JSON body")
 
     def test_create_orders() -> None:
+        primary_user = require_created(users, "primary", "create_users must succeed before create_orders")
+        secondary_user = require_created(users, "secondary", "create_users must succeed before create_orders")
+        mouse = require_created(products, "mouse", "create_products must succeed before create_orders")
+        keyboard = require_created(products, "keyboard", "create_products must succeed before create_orders")
+        notebook = require_created(products, "notebook", "create_products must succeed before create_orders")
         order_definitions = [
             (
                 "shippable",
                 {
-                    "user_id": users["primary"]["id"],
+                    "user_id": primary_user["id"],
                     "items": [
-                        {"product_id": products["mouse"]["id"], "quantity": 2},
-                        {"product_id": products["keyboard"]["id"], "quantity": 1},
+                        {"product_id": mouse["id"], "quantity": 2},
+                        {"product_id": keyboard["id"], "quantity": 1},
                     ],
                 },
                 220.0,
                 2,
-                [products["mouse"]["id"], products["keyboard"]["id"]],
+                [mouse["id"], keyboard["id"]],
             ),
             (
                 "cancellable",
                 {
-                    "user_id": users["primary"]["id"],
-                    "items": [{"product_id": products["notebook"]["id"], "quantity": 1}],
+                    "user_id": primary_user["id"],
+                    "items": [{"product_id": notebook["id"], "quantity": 1}],
                 },
                 3500.0,
                 1,
-                [products["notebook"]["id"]],
+                [notebook["id"]],
             ),
             (
                 "created_secondary",
                 {
-                    "user_id": users["secondary"]["id"],
-                    "items": [{"product_id": products["keyboard"]["id"], "quantity": 3}],
+                    "user_id": secondary_user["id"],
+                    "items": [{"product_id": keyboard["id"], "quantity": 3}],
                 },
                 360.0,
                 1,
-                [products["keyboard"]["id"]],
+                [keyboard["id"]],
             ),
         ]
 
@@ -418,51 +440,59 @@ def run_validation(base_url: str) -> dict[str, Any]:
             orders[key] = order
 
     def test_create_order_without_items() -> None:
+        primary_user = require_created(users, "primary", "create_users must succeed before create_order_without_items")
         payload = request_json(
             session,
             "POST",
             join_url(base_url, "/orders"),
             expected_statuses={400, 422},
-            json_body={"user_id": users["primary"]["id"], "items": []},
+            json_body={"user_id": primary_user["id"], "items": []},
         )
         expect(payload is not None, "create_order_without_items must return a JSON body")
 
     def test_create_order_with_invalid_quantity() -> None:
+        primary_user = require_created(users, "primary", "create_users must succeed before create_order_with_invalid_quantity")
+        mouse = require_created(products, "mouse", "create_products must succeed before create_order_with_invalid_quantity")
         payload = request_json(
             session,
             "POST",
             join_url(base_url, "/orders"),
             expected_statuses={400, 422},
             json_body={
-                "user_id": users["primary"]["id"],
-                "items": [{"product_id": products["mouse"]["id"], "quantity": 0}],
+                "user_id": primary_user["id"],
+                "items": [{"product_id": mouse["id"], "quantity": 0}],
             },
         )
         expect(payload is not None, "create_order_with_invalid_quantity must return a JSON body")
 
     def test_order_total_and_get_by_id() -> None:
+        shippable = require_created(orders, "shippable", "create_orders must succeed before order_total_and_get_by_id")
+        primary_user = require_created(users, "primary", "create_users must succeed before order_total_and_get_by_id")
+        mouse = require_created(products, "mouse", "create_products must succeed before order_total_and_get_by_id")
+        keyboard = require_created(products, "keyboard", "create_products must succeed before order_total_and_get_by_id")
         payload = request_json(
             session,
             "GET",
-            join_url(base_url, f"/orders/{orders['shippable']['id']}"),
+            join_url(base_url, f"/orders/{shippable['id']}"),
             expected_statuses={200},
         )
         order = assert_order_payload(
             payload,
             "order_total_and_get_by_id response",
-            expected_user_id=users["primary"]["id"],
+            expected_user_id=primary_user["id"],
             expected_status="created",
             expected_total=220.0,
             expected_item_count=2,
-            expected_product_ids=[products["mouse"]["id"], products["keyboard"]["id"]],
+            expected_product_ids=[mouse["id"], keyboard["id"]],
         )
-        expect(order["id"] == orders["shippable"]["id"], "order_total_and_get_by_id returned unexpected order id")
+        expect(order["id"] == shippable["id"], "order_total_and_get_by_id returned unexpected order id")
 
     def test_update_order_status_to_paid() -> None:
+        shippable = require_created(orders, "shippable", "create_orders must succeed before update_order_status_to_paid")
         payload = request_json(
             session,
             "PATCH",
-            join_url(base_url, f"/orders/{orders['shippable']['id']}/status"),
+            join_url(base_url, f"/orders/{shippable['id']}/status"),
             expected_statuses={200},
             json_body={"status": "paid"},
         )
@@ -476,10 +506,11 @@ def run_validation(base_url: str) -> dict[str, Any]:
         orders["shippable"] = order
 
     def test_update_order_status_to_shipped() -> None:
+        shippable = require_created(orders, "shippable", "update_order_status_to_paid must succeed before update_order_status_to_shipped")
         payload = request_json(
             session,
             "PATCH",
-            join_url(base_url, f"/orders/{orders['shippable']['id']}/status"),
+            join_url(base_url, f"/orders/{shippable['id']}/status"),
             expected_statuses={200},
             json_body={"status": "shipped"},
         )
@@ -493,10 +524,11 @@ def run_validation(base_url: str) -> dict[str, Any]:
         orders["shippable"] = order
 
     def test_cancel_second_order() -> None:
+        cancellable = require_created(orders, "cancellable", "create_orders must succeed before cancel_second_order")
         payload = request_json(
             session,
             "PATCH",
-            join_url(base_url, f"/orders/{orders['cancellable']['id']}/status"),
+            join_url(base_url, f"/orders/{cancellable['id']}/status"),
             expected_statuses={200},
             json_body={"status": "cancelled"},
         )
@@ -510,26 +542,31 @@ def run_validation(base_url: str) -> dict[str, Any]:
         orders["cancellable"] = order
 
     def test_reject_invalid_order_status_value() -> None:
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before reject_invalid_order_status_value")
         payload = request_json(
             session,
             "PATCH",
-            join_url(base_url, f"/orders/{orders['created_secondary']['id']}/status"),
+            join_url(base_url, f"/orders/{created_secondary['id']}/status"),
             expected_statuses={422},
             json_body={"status": "refunded"},
         )
         expect(payload is not None, "reject_invalid_order_status_value must return a JSON body")
 
     def test_reject_invalid_order_status_transition() -> None:
+        shippable = require_created(orders, "shippable", "update_order_status_to_shipped must succeed before reject_invalid_order_status_transition")
         payload = request_json(
             session,
             "PATCH",
-            join_url(base_url, f"/orders/{orders['shippable']['id']}/status"),
+            join_url(base_url, f"/orders/{shippable['id']}/status"),
             expected_statuses={409},
             json_body={"status": "created"},
         )
         expect(payload is not None, "reject_invalid_order_status_transition must return a JSON body")
 
     def test_filter_orders_by_status() -> None:
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before filter_orders_by_status")
+        shippable = require_created(orders, "shippable", "create_orders must succeed before filter_orders_by_status")
+        cancellable = require_created(orders, "cancellable", "create_orders must succeed before filter_orders_by_status")
         payload = request_json(
             session,
             "GET",
@@ -543,12 +580,16 @@ def run_validation(base_url: str) -> dict[str, Any]:
         for item in returned_orders:
             order = assert_order_payload(item, "filter_orders_by_status item", expected_status="created")
             returned_ids.add(order["id"])
-        expect(orders["created_secondary"]["id"] in returned_ids, "filter_orders_by_status did not include the created order")
-        expect(orders["shippable"]["id"] not in returned_ids, "filter_orders_by_status included the shipped order")
-        expect(orders["cancellable"]["id"] not in returned_ids, "filter_orders_by_status included the cancelled order")
+        expect(created_secondary["id"] in returned_ids, "filter_orders_by_status did not include the created order")
+        expect(shippable["id"] not in returned_ids, "filter_orders_by_status included the shipped order")
+        expect(cancellable["id"] not in returned_ids, "filter_orders_by_status included the cancelled order")
 
     def test_filter_orders_by_user_id() -> None:
-        user_id = users["primary"]["id"]
+        primary_user = require_created(users, "primary", "create_users must succeed before filter_orders_by_user_id")
+        shippable = require_created(orders, "shippable", "create_orders must succeed before filter_orders_by_user_id")
+        cancellable = require_created(orders, "cancellable", "create_orders must succeed before filter_orders_by_user_id")
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before filter_orders_by_user_id")
+        user_id = primary_user["id"]
         payload = request_json(
             session,
             "GET",
@@ -562,17 +603,21 @@ def run_validation(base_url: str) -> dict[str, Any]:
         for item in returned_orders:
             order = assert_order_payload(item, "filter_orders_by_user_id item", expected_user_id=user_id)
             returned_ids.add(order["id"])
-        expect(orders["shippable"]["id"] in returned_ids, "filter_orders_by_user_id did not include the first primary-user order")
-        expect(orders["cancellable"]["id"] in returned_ids, "filter_orders_by_user_id did not include the second primary-user order")
-        expect(orders["created_secondary"]["id"] not in returned_ids, "filter_orders_by_user_id included the secondary-user order")
+        expect(shippable["id"] in returned_ids, "filter_orders_by_user_id did not include the first primary-user order")
+        expect(cancellable["id"] in returned_ids, "filter_orders_by_user_id did not include the second primary-user order")
+        expect(created_secondary["id"] not in returned_ids, "filter_orders_by_user_id included the secondary-user order")
 
     def test_filter_orders_by_status_and_user_id() -> None:
+        primary_user = require_created(users, "primary", "create_users must succeed before filter_orders_by_status_and_user_id")
+        cancellable = require_created(orders, "cancellable", "create_orders must succeed before filter_orders_by_status_and_user_id")
+        shippable = require_created(orders, "shippable", "create_orders must succeed before filter_orders_by_status_and_user_id")
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before filter_orders_by_status_and_user_id")
         payload = request_json(
             session,
             "GET",
             join_url(base_url, "/orders"),
             expected_statuses={200},
-            params={"status": "cancelled", "user_id": users["primary"]["id"]},
+            params={"status": "cancelled", "user_id": primary_user["id"]},
         )
         returned_orders = require_list(payload, "filter_orders_by_status_and_user_id response")
         expect(returned_orders, "filter_orders_by_status_and_user_id returned an empty list")
@@ -581,13 +626,13 @@ def run_validation(base_url: str) -> dict[str, Any]:
             order = assert_order_payload(
                 item,
                 "filter_orders_by_status_and_user_id item",
-                expected_user_id=users["primary"]["id"],
+                expected_user_id=primary_user["id"],
                 expected_status="cancelled",
             )
             returned_ids.add(order["id"])
-        expect(orders["cancellable"]["id"] in returned_ids, "filter_orders_by_status_and_user_id did not include the cancelled primary-user order")
-        expect(orders["shippable"]["id"] not in returned_ids, "filter_orders_by_status_and_user_id included the shipped order")
-        expect(orders["created_secondary"]["id"] not in returned_ids, "filter_orders_by_status_and_user_id included the secondary-user order")
+        expect(cancellable["id"] in returned_ids, "filter_orders_by_status_and_user_id did not include the cancelled primary-user order")
+        expect(shippable["id"] not in returned_ids, "filter_orders_by_status_and_user_id included the shipped order")
+        expect(created_secondary["id"] not in returned_ids, "filter_orders_by_status_and_user_id included the secondary-user order")
 
     def test_reject_invalid_order_filters() -> None:
         payload_1 = request_json(
@@ -609,6 +654,11 @@ def run_validation(base_url: str) -> dict[str, Any]:
         expect(payload_2 is not None, "reject_invalid_order_filters user_id must return a JSON body")
 
     def test_list_orders_with_relationships() -> None:
+        shippable = require_created(orders, "shippable", "create_orders must succeed before list_orders_with_relationships")
+        cancellable = require_created(orders, "cancellable", "create_orders must succeed before list_orders_with_relationships")
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before list_orders_with_relationships")
+        primary_user = require_created(users, "primary", "create_users must succeed before list_orders_with_relationships")
+        secondary_user = require_created(users, "secondary", "create_users must succeed before list_orders_with_relationships")
         payload = request_json(
             session,
             "GET",
@@ -618,25 +668,25 @@ def run_validation(base_url: str) -> dict[str, Any]:
         returned_orders = require_list(payload, "list_orders_with_relationships response")
 
         shippable = assert_order_payload(
-            find_by_id(returned_orders, orders["shippable"]["id"], "list_orders_with_relationships response"),
+            find_by_id(returned_orders, shippable["id"], "list_orders_with_relationships response"),
             "list_orders_with_relationships shipped order",
-            expected_user_id=users["primary"]["id"],
+            expected_user_id=primary_user["id"],
             expected_status="shipped",
             expected_total=220.0,
             expected_item_count=2,
         )
         cancelled = assert_order_payload(
-            find_by_id(returned_orders, orders["cancellable"]["id"], "list_orders_with_relationships response"),
+            find_by_id(returned_orders, cancellable["id"], "list_orders_with_relationships response"),
             "list_orders_with_relationships cancelled order",
-            expected_user_id=users["primary"]["id"],
+            expected_user_id=primary_user["id"],
             expected_status="cancelled",
             expected_total=3500.0,
             expected_item_count=1,
         )
         created = assert_order_payload(
-            find_by_id(returned_orders, orders["created_secondary"]["id"], "list_orders_with_relationships response"),
+            find_by_id(returned_orders, created_secondary["id"], "list_orders_with_relationships response"),
             "list_orders_with_relationships created order",
-            expected_user_id=users["secondary"]["id"],
+            expected_user_id=secondary_user["id"],
             expected_status="created",
             expected_total=360.0,
             expected_item_count=1,

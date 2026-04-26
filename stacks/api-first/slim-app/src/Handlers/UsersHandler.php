@@ -32,6 +32,10 @@ final class UsersHandler
             return JsonResponse::create($response, 422, ['detail' => "Field 'email' is required"]);
         }
 
+        if ($this->findByEmail($payload['email']) !== null) {
+            return JsonResponse::create($response, 409, ['detail' => 'Email already exists']);
+        }
+
         try {
             $statement = $this->pdo->prepare('INSERT INTO users (name, email) VALUES (:name, :email)');
             $statement->execute([
@@ -70,6 +74,15 @@ final class UsersHandler
     {
         $statement = $this->pdo->prepare('SELECT id, name, email FROM users WHERE id = :id');
         $statement->execute(['id' => $id]);
+        $user = $statement->fetch();
+
+        return $user === false ? null : $user;
+    }
+
+    private function findByEmail(string $email): ?array
+    {
+        $statement = $this->pdo->prepare('SELECT id, name, email FROM users WHERE email = :email');
+        $statement->execute(['email' => $email]);
         $user = $statement->fetch();
 
         return $user === false ? null : $user;

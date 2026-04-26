@@ -26,9 +26,18 @@ func RegisterUserRoutes(router gin.IRouter, db *gorm.DB) {
 			return
 		}
 
+		var existingUser models.User
+		if err := db.Select("id").Where("email = ?", payload.Email).First(&existingUser).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"detail": "Email already exists"})
+			return
+		} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not create user"})
+			return
+		}
+
 		user := models.User{Name: payload.Name, Email: payload.Email}
 		if err := db.Create(&user).Error; err != nil {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Could not create user"})
+			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not create user"})
 			return
 		}
 

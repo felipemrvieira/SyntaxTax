@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProductCreate(BaseModel):
     name: str
-    price: float
+    price: float = Field(gt=0)
 
 
 class ProductRead(BaseModel):

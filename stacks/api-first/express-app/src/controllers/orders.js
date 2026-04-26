@@ -1,6 +1,13 @@
 const prisma = require("../db/prisma");
 const { serializeOrder } = require("../serializers/order");
-const { validateOrder, validateOrderStatus } = require("../schemas/order");
+const { validateOrder, validateOrderFilters, validateOrderStatus } = require("../schemas/order");
+
+const ALLOWED_STATUS_TRANSITIONS = {
+  created: new Set(["paid", "cancelled"]),
+  paid: new Set(["shipped", "cancelled"]),
+  shipped: new Set(),
+  cancelled: new Set()
+};
 
 async function findDetailedOrder(orderId) {
   return prisma.order.findUnique({
@@ -8,7 +15,10 @@ async function findDetailedOrder(orderId) {
     include: {
       user: true,
       items: {
-        orderBy: { id: "asc" }
+        orderBy: { id: "asc" },
+        include: {
+          product: true
+        }
       }
     }
   });
@@ -68,13 +78,30 @@ async function createOrder(req, res) {
   return res.status(201).json(serializeOrder(detailedOrder));
 }
 
-async function listOrders(_req, res) {
+async function listOrders(req, res) {
+  const filterError = validateOrderFilters(req.query);
+  if (filterError) {
+    return res.status(filterError.status).json({ detail: filterError.message });
+  }
+
+  const where = {};
+  if (req.query.status !== undefined) {
+    where.status = req.query.status;
+  }
+  if (req.query.user_id !== undefined) {
+    where.user_id = Number(req.query.user_id);
+  }
+
   const orders = await prisma.order.findMany({
+    where,
     orderBy: { id: "asc" },
     include: {
       user: true,
       items: {
-        orderBy: { id: "asc" }
+        orderBy: { id: "asc" },
+        include: {
+          product: true
+        }
       }
     }
   });
@@ -96,7 +123,7 @@ async function getOrder(req, res) {
 async function updateOrderStatus(req, res) {
   const error = validateOrderStatus(req.body);
   if (error) {
-    return res.status(422).json({ detail: error });
+    return res.status(error.status).json({ detail: error.message });
   }
 
   const orderId = Number(req.params.id);
@@ -106,6 +133,10 @@ async function updateOrderStatus(req, res) {
 
   if (!existingOrder) {
     return res.status(404).json({ detail: "Order not found" });
+  }
+
+  if (!ALLOWED_STATUS_TRANSITIONS[existingOrder.status].has(req.body.status)) {
+    return res.status(409).json({ detail: "Invalid order status transition" });
   }
 
   await prisma.order.update({

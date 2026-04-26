@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"syntaxtax-gin-app/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

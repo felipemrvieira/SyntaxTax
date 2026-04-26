@@ -1,8 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.user import OrderUserRead
+
+
+OrderStatus = Literal["created", "paid", "shipped", "cancelled"]
 
 
 class OrderItemCreate(BaseModel):
@@ -16,13 +20,14 @@ class OrderCreate(BaseModel):
 
 
 class OrderStatusUpdate(BaseModel):
-    status: str
+    status: OrderStatus
 
 
 class OrderItemRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     product_id: int
+    product_name: str
     quantity: int
     unit_price: float
 
@@ -33,6 +38,7 @@ class OrderRead(BaseModel):
     id: int
     user: OrderUserRead
     items: list[OrderItemRead]
+    item_count: int
     total: float
-    status: str
+    status: OrderStatus
     created_at: datetime

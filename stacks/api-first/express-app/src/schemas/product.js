@@ -11,6 +11,10 @@ function validateProduct(payload) {
     return "Field 'price' must be numeric";
   }
 
+  if (payload.price <= 0) {
+    return "Field 'price' must be greater than zero";
+  }
+
   return null;
 }
 

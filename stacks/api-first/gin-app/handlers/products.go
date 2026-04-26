@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"syntaxtax-gin-app/models"
 	"syntaxtax-gin-app/schemas"
 
@@ -25,6 +26,10 @@ func RegisterProductRoutes(router gin.IRouter, db *gorm.DB) {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Field 'price' must be numeric"})
 			return
 		}
+		if *payload.Price <= 0 {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Field 'price' must be greater than zero"})
+			return
+		}
 
 		product := models.Product{Name: payload.Name, Price: *payload.Price}
 		if err := db.Create(&product).Error; err != nil {
@@ -36,8 +41,28 @@ func RegisterProductRoutes(router gin.IRouter, db *gorm.DB) {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
+		query := db.Order("id asc")
+
+		if rawMinPrice := c.Query("min_price"); rawMinPrice != "" {
+			minPrice, err := strconv.ParseFloat(rawMinPrice, 64)
+			if err != nil || minPrice <= 0 {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Query parameter 'min_price' is invalid"})
+				return
+			}
+			query = query.Where("price >= ?", minPrice)
+		}
+
+		if rawMaxPrice := c.Query("max_price"); rawMaxPrice != "" {
+			maxPrice, err := strconv.ParseFloat(rawMaxPrice, 64)
+			if err != nil || maxPrice <= 0 {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Query parameter 'max_price' is invalid"})
+				return
+			}
+			query = query.Where("price <= ?", maxPrice)
+		}
+
 		var products []models.Product
-		if err := db.Order("id asc").Find(&products).Error; err != nil {
+		if err := query.Find(&products).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not list products"})
 			return
 		}

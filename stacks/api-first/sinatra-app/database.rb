@@ -12,5 +12,5 @@ ActiveRecord::Base.establish_connection(
 def setup_database
   FileUtils.mkdir_p(File.dirname(DB_PATH))
   ActiveRecord::Migration.verbose = false
-  ActiveRecord::MigrationContext.new(MIGRATIONS_PATH, ActiveRecord::SchemaMigration).migrate
+  ActiveRecord::Base.connection_pool.migration_context.migrate
 end

@@ -1,3 +1,5 @@
+const VALID_STATUSES = new Set(["created", "paid", "shipped", "cancelled"]);
+
 function validateOrder(payload) {
   if (!payload || typeof payload !== "object") {
     return { status: 422, message: "Body must be a JSON object" };
@@ -30,11 +32,30 @@ function validateOrder(payload) {
 
 function validateOrderStatus(payload) {
   if (!payload || typeof payload !== "object") {
-    return "Body must be a JSON object";
+    return { status: 422, message: "Body must be a JSON object" };
   }
 
   if (typeof payload.status !== "string" || payload.status.trim() === "") {
-    return "Field 'status' is required";
+    return { status: 422, message: "Field 'status' is required" };
+  }
+
+  if (!VALID_STATUSES.has(payload.status)) {
+    return { status: 422, message: "Field 'status' is invalid" };
+  }
+
+  return null;
+}
+
+function validateOrderFilters(query) {
+  if (query.status !== undefined && !VALID_STATUSES.has(query.status)) {
+    return { status: 422, message: "Query parameter 'status' is invalid" };
+  }
+
+  if (query.user_id !== undefined) {
+    const userId = Number(query.user_id);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return { status: 422, message: "Query parameter 'user_id' is invalid" };
+    }
   }
 
   return null;
@@ -42,5 +63,7 @@ function validateOrderStatus(payload) {
 
 module.exports = {
   validateOrder,
-  validateOrderStatus
+  validateOrderStatus,
+  validateOrderFilters,
+  VALID_STATUSES
 };

@@ -30,6 +30,9 @@ final class ProductsHandler
         if (!is_numeric($payload['price'] ?? null)) {
             return JsonResponse::create($response, 422, ['detail' => "Field 'price' must be numeric"]);
         }
+        if ((float) $payload['price'] <= 0) {
+            return JsonResponse::create($response, 422, ['detail' => "Field 'price' must be greater than zero"]);
+        }
 
         $statement = $this->pdo->prepare('INSERT INTO products (name, price) VALUES (:name, :price)');
         $statement->execute([
@@ -46,7 +49,34 @@ final class ProductsHandler
 
     public function list(Request $request, Response $response): Response
     {
-        $statement = $this->pdo->query('SELECT id, name, price FROM products ORDER BY id ASC');
+        $params = $request->getQueryParams();
+        $conditions = [];
+        $bindings = [];
+
+        if (array_key_exists('min_price', $params)) {
+            if (!is_numeric($params['min_price']) || (float) $params['min_price'] <= 0) {
+                return JsonResponse::create($response, 422, ['detail' => "Query parameter 'min_price' is invalid"]);
+            }
+            $conditions[] = 'price >= :min_price';
+            $bindings['min_price'] = (float) $params['min_price'];
+        }
+
+        if (array_key_exists('max_price', $params)) {
+            if (!is_numeric($params['max_price']) || (float) $params['max_price'] <= 0) {
+                return JsonResponse::create($response, 422, ['detail' => "Query parameter 'max_price' is invalid"]);
+            }
+            $conditions[] = 'price <= :max_price';
+            $bindings['max_price'] = (float) $params['max_price'];
+        }
+
+        $sql = 'SELECT id, name, price FROM products';
+        if ($conditions !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+        $sql .= ' ORDER BY id ASC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($bindings);
 
         return JsonResponse::create($response, 200, $statement->fetchAll());
     }

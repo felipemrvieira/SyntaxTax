@@ -7,12 +7,21 @@ async function createUser(req, res) {
     return res.status(422).json({ detail: error });
   }
 
-  const user = await prisma.user.create({
-    data: {
-      name: req.body.name,
-      email: req.body.email
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        name: req.body.name,
+        email: req.body.email
+      }
+    });
+  } catch (error) {
+    if (error && error.code === "P2002") {
+      return res.status(409).json({ detail: "Email already exists" });
     }
-  });
+
+    throw error;
+  }
 
   return res.status(201).json(user);
 }

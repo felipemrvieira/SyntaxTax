@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -23,8 +23,19 @@ def create_product(payload: ProductCreate, db: DbSession) -> Product:
 
 
 @router.get("", response_model=list[ProductRead])
-def list_products(db: DbSession) -> list[Product]:
-    return list(db.scalars(select(Product).order_by(Product.id)))
+def list_products(
+    db: DbSession,
+    min_price: float | None = Query(default=None, gt=0),
+    max_price: float | None = Query(default=None, gt=0),
+) -> list[Product]:
+    statement = select(Product)
+
+    if min_price is not None:
+        statement = statement.where(Product.price >= min_price)
+    if max_price is not None:
+        statement = statement.where(Product.price <= max_price)
+
+    return list(db.scalars(statement.order_by(Product.id)))
 
 
 @router.get("/{product_id}", response_model=ProductRead)

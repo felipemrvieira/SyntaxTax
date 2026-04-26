@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,7 +18,11 @@ DbSession = Annotated[Session, Depends(get_db)]
 def create_user(payload: UserCreate, db: DbSession) -> User:
     user = User(name=payload.name, email=payload.email)
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists") from None
     db.refresh(user)
     return user
 

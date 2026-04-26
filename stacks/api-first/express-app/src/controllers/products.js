@@ -18,7 +18,30 @@ async function createProduct(req, res) {
 }
 
 async function listProducts(_req, res) {
+  const minPrice = _req.query.min_price;
+  const maxPrice = _req.query.max_price;
+  const where = {};
+
+  if (minPrice !== undefined) {
+    const parsedMinPrice = Number(minPrice);
+    if (!Number.isFinite(parsedMinPrice) || parsedMinPrice <= 0) {
+      return res.status(422).json({ detail: "Query parameter 'min_price' is invalid" });
+    }
+    where.price ??= {};
+    where.price.gte = parsedMinPrice;
+  }
+
+  if (maxPrice !== undefined) {
+    const parsedMaxPrice = Number(maxPrice);
+    if (!Number.isFinite(parsedMaxPrice) || parsedMaxPrice <= 0) {
+      return res.status(422).json({ detail: "Query parameter 'max_price' is invalid" });
+    }
+    where.price ??= {};
+    where.price.lte = parsedMaxPrice;
+  }
+
   const products = await prisma.product.findMany({
+    where,
     orderBy: { id: "asc" }
   });
 

@@ -22,15 +22,17 @@ type OrderUserResponse struct {
 }
 
 type OrderItemResponse struct {
-	ProductID uint    `json:"product_id"`
-	Quantity  int     `json:"quantity"`
-	UnitPrice float64 `json:"unit_price"`
+	ProductID   uint    `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	UnitPrice   float64 `json:"unit_price"`
 }
 
 type OrderResponse struct {
 	ID        uint                `json:"id"`
 	User      OrderUserResponse   `json:"user"`
 	Items     []OrderItemResponse `json:"items"`
+	ItemCount int                 `json:"item_count"`
 	Total     float64             `json:"total"`
 	Status    string              `json:"status"`
 	CreatedAt time.Time           `json:"created_at"`

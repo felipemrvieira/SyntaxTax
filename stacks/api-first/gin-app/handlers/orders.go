@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"syntaxtax-gin-app/models"
@@ -11,6 +12,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+var validOrderStatuses = map[string]struct{}{
+	"created":   {},
+	"paid":      {},
+	"shipped":   {},
+	"cancelled": {},
+}
+
+var allowedStatusTransitions = map[string]map[string]struct{}{
+	"created": {
+		"paid":      {},
+		"cancelled": {},
+	},
+	"paid": {
+		"shipped":   {},
+		"cancelled": {},
+	},
+	"shipped":   {},
+	"cancelled": {},
+}
 
 func RegisterOrderRoutes(router gin.IRouter, db *gorm.DB) {
 	router.POST("/orders", func(c *gin.Context) {
@@ -112,8 +133,27 @@ func RegisterOrderRoutes(router gin.IRouter, db *gorm.DB) {
 	})
 
 	router.GET("/orders", func(c *gin.Context) {
+		query := db.Preload("User").Preload("Items", orderedItems).Preload("Items.Product").Order("id asc")
+
+		if rawStatus := c.Query("status"); rawStatus != "" {
+			if _, ok := validOrderStatuses[rawStatus]; !ok {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Query parameter 'status' is invalid"})
+				return
+			}
+			query = query.Where("status = ?", rawStatus)
+		}
+
+		if rawUserID := c.Query("user_id"); rawUserID != "" {
+			userID, err := strconv.ParseUint(rawUserID, 10, 64)
+			if err != nil || userID == 0 {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Query parameter 'user_id' is invalid"})
+				return
+			}
+			query = query.Where("user_id = ?", userID)
+		}
+
 		var orders []models.Order
-		if err := db.Preload("User").Preload("Items", orderedItems).Preload("Items.Product").Order("id asc").Find(&orders).Error; err != nil {
+		if err := query.Find(&orders).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not list orders"})
 			return
 		}
@@ -160,6 +200,10 @@ func RegisterOrderRoutes(router gin.IRouter, db *gorm.DB) {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Field 'status' is required"})
 			return
 		}
+		if _, ok := validOrderStatuses[payload.Status]; !ok {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"detail": "Field 'status' is invalid"})
+			return
+		}
 
 		var order models.Order
 		if err := db.First(&order, orderID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -167,6 +211,11 @@ func RegisterOrderRoutes(router gin.IRouter, db *gorm.DB) {
 			return
 		} else if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"detail": "Could not fetch order"})
+			return
+		}
+
+		if _, ok := allowedStatusTransitions[order.Status][payload.Status]; !ok {
+			c.JSON(http.StatusConflict, gin.H{"detail": "Invalid order status transition"})
 			return
 		}
 
@@ -219,9 +268,10 @@ func serializeOrder(order models.Order) schemas.OrderResponse {
 	items := make([]schemas.OrderItemResponse, 0, len(order.Items))
 	for _, item := range order.Items {
 		items = append(items, schemas.OrderItemResponse{
-			ProductID: item.ProductID,
-			Quantity:  item.Quantity,
-			UnitPrice: item.UnitPrice,
+			ProductID:   item.ProductID,
+			ProductName: item.Product.Name,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
 		})
 	}
 
@@ -232,6 +282,7 @@ func serializeOrder(order models.Order) schemas.OrderResponse {
 			Name: order.User.Name,
 		},
 		Items:     items,
+		ItemCount: len(items),
 		Total:     order.Total,
 		Status:    order.Status,
 		CreatedAt: order.CreatedAt,
