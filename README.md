@@ -78,6 +78,16 @@ docker run --rm -v "$PWD:/app" syntaxtax-benchmark python benchmark/measure.py f
 docker run --rm -v "$PWD:/app" syntaxtax-benchmark python benchmark/collect.py
 ```
 
+### Publicar dashboard estático
+
+Depois de atualizar `results/summary.csv` e `results/analysis.csv`, sincronize os dados versionados do dashboard:
+
+```bash
+python3 dashboard/sync_data.py
+```
+
+O repositório já contém uma entrada estática em `index.html` que redireciona para `dashboard/`, então ele pode ser publicado diretamente em GitHub Pages a partir da raiz do branch.
+
 ### Rodar validação
 
 ```bash

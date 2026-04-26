@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node src/app.js",
+    "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push"
   },
   "dependencies": {

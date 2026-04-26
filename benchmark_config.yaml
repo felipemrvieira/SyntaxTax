@@ -111,7 +111,7 @@ stacks:
         - "src/orders/**/*.service.ts"
       persistence:
         - "src/prisma/**/*.ts"
-        - "prisma/migrations/**"
+        - "prisma/migrations/**/*"
     operational_extras:
       config:
         - "package.json"
@@ -186,7 +186,6 @@ stacks:
         - "models/**/*.rb"
       api:
         - "app.rb"
-        - "routes/**/*.rb"
       persistence:
         - "database.rb"
         - "db/migrate/**/*.rb"
@@ -214,7 +213,7 @@ stacks:
         - "src/serializers/**/*.js"
       persistence:
         - "src/db/**/*.js"
-        - "prisma/migrations/**"
+        - "prisma/migrations/**/*"
     operational_extras:
       config:
         - "package.json"

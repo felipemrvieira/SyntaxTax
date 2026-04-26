@@ -1,0 +1,11 @@
+stack_id,language,framework,total_tokens,handwritten_tokens,operational_tokens,handwritten_ratio,operational_ratio,normalized_tokens,config_heavy_stack,api_tokens,domain_tokens,persistence_tokens
+django,python,django,2419,1833,586,0.757751,0.242249,1833,False,606,716,511
+express,javascript,express,2853,2739,114,0.960042,0.039958,2739,False,1617,779,343
+fastapi,python,fastapi,3241,2811,430,0.867325,0.132675,2811,False,1340,915,556
+gin,go,gin,9789,4273,5516,0.43651,0.56349,4273,True,3071,565,637
+laravel,php,laravel,83144,2616,80528,0.031463,0.968537,2616,True,1715,390,511
+nestjs,typescript,nestjs,28801,3058,25743,0.106177,0.893823,3058,True,2043,531,484
+rails,ruby,rails,2160,1749,411,0.809722,0.190278,1749,False,891,521,337
+sinatra,ruby,sinatra,2028,1947,81,0.960059,0.039941,1947,False,1354,189,404
+slim,php,slim,10157,3933,6224,0.387221,0.612779,3933,True,3357,0,576
+springboot,java,springboot,4675,4141,534,0.885775,0.114225,4141,False,2058,1635,448
