@@ -80,6 +80,24 @@ docker run --rm -v "$PWD:/app" syntaxtax-benchmark python benchmark/collect.py
 
 ### Publicar dashboard estático
 
+#### GitHub Pages com GitHub Actions
+
+O repositório agora inclui um workflow em `.github/workflows/pages.yml` que:
+
+- roda `measure.py` para todas as stacks registradas
+- roda `collect.py`
+- sincroniza `dashboard/data/`
+- publica o artefato estático em GitHub Pages
+
+Para ativar:
+
+1. vá em `Settings` → `Pages`
+2. em `Build and deployment`, escolha `Source: GitHub Actions`
+
+Depois disso, cada `push` na branch `master` publica o dashboard automaticamente.
+
+#### Publicação manual da versão estática
+
 Depois de atualizar `results/summary.csv` e `results/analysis.csv`, sincronize os dados versionados do dashboard:
 
 ```bash
