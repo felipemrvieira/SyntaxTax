@@ -291,13 +291,16 @@ const translations = {
         "SyntaxTax is a controlled benchmark that measures the textual cost of equivalent web API implementations across 10 different stacks. The central question is not which framework is \"better\" — it is how much token context a language model must consume to understand or modify a complete, idiomatic codebase.",
       researchQuestion:
         "How many tokens does it take to implement the same API in 10 different web stacks?",
-      constraintsTitle: "Experimental constraints",
+      whyLabel: "Why does this matter?",
+      whyBody:
+        "Every time an AI tool (like GitHub Copilot or ChatGPT) reads your codebase, it pays a cost measured in tokens — the small fragments that LLMs (large language models) use to process text. The larger the codebase, the higher the token count, and the more likely the model hits its context window limit and loses track of earlier code. SyntaxTax measures that token cost across 10 real tech stacks implementing the same mini application, so you can see whether your stack is working for or against you in an LLM-assisted workflow.",
+      constraintsTitle: "How the experiment is controlled",
       constraints: [
-        "All 10 stacks implement an identical domain and pass the same functional validator before being measured.",
-        "Tokenizer is fixed to cl100k_base (GPT-4 / GPT-3.5 family) with alphabetical stable ordering and pure_content_only strategy.",
-        "Vendor directories, test files, build artifacts, and virtual environments are always excluded.",
-        "Stacks are grouped into two methodological rounds: API-first microframeworks and opinionated frameworks.",
-        "The benchmark measures the textual result of the final implementation — not the generation cost.",
+        "All 10 stacks implement an identical application (same features, same business rules) and pass the same functional validator — validate.py — before being measured. This ensures token count differences come from the stack's verbosity, not from scope or feature differences.",
+        "The tokenizer is fixed at cl100k_base — the same algorithm ChatGPT and GitHub Copilot use to split text into tokens — with alphabetical stable ordering and the pure_content_only strategy, which counts only literal source content.",
+        "Auto-generated directories (vendor/, node_modules/, build artifacts, virtual environments like .venv) and test files are always excluded. Only intentional source files are counted.",
+        "Stacks are grouped in two methodological rounds: Round A (API-first microframeworks — minimal, low-convention) and Round B (opinionated frameworks — full-featured, with enforced structure). Comparison is only valid within the same round.",
+        "The benchmark measures the textual result of the final repository snapshot — not the cost of generating code with an AI. It answers: how expensive is it for an LLM to read this codebase?",
       ],
       domainTitle: "The domain: a mini order system",
       domainBody:
@@ -333,21 +336,25 @@ const translations = {
           name: "Total tokens",
           color: "ember",
           desc: "All measured files combined — handwritten code plus operational extras. This is the full context cost of the stack.",
+          plain: "In LLM terms: the full context window cost of loading this stack. Lower means the model retains more working memory for your actual task.",
         },
         {
           name: "Handwritten tokens",
           color: "aqua",
           desc: "Only the files implementing the application: domain models, API handlers, and persistence code. Excludes lockfiles and config.",
+          plain: "The cost of what a developer actually wrote — stripped of the ecosystem noise. This is the cleanest signal for comparing framework verbosity.",
         },
         {
           name: "Operational tokens",
           color: "slateblue",
-          desc: "Lockfiles, package manifests, framework config. Represents ecosystem overhead rather than application logic.",
+          desc: "Lockfiles (package-lock.json, Gemfile.lock), package manifests (package.json, composer.json), and framework config. Ecosystem overhead, not application logic.",
+          plain: "The \"entry fee\" of the stack — files the framework or package manager forces you to have, regardless of what your app does.",
         },
         {
           name: "Operational ratio",
           color: "sand",
-          desc: "operational_tokens ÷ total_tokens. High values indicate stacks where ecosystem infrastructure dominates the corpus.",
+          desc: "operational_tokens ÷ total_tokens. High values indicate stacks where lockfiles and config dominate the corpus over application code.",
+          plain: "What share of the total token budget is pure overhead. A ratio of 0.60 means 60% of the tokens an LLM reads are infrastructure, not your app.",
         },
       ],
       browserTitle: "File browser — what gets measured",
@@ -360,6 +367,30 @@ const translations = {
         operational: "bg-sand border border-black/10 text-slateblue/70",
       },
       noDomainNote: "No domain layer — raw SQL / PDO without ORM abstraction",
+      glossaryTitle: "Glossary",
+      glossaryBody: "New to some of these terms? Here's what they mean in plain language.",
+      glossary: [
+        {
+          term: "Token",
+          def: "A small fragment of text — roughly ¾ of a word on average. AI models read and generate text in tokens. More tokens = higher cost and slower responses.",
+        },
+        {
+          term: "Framework / Stack",
+          def: "A pre-built set of tools and conventions for building web applications. Examples: Rails (Ruby), Django (Python), NestJS (TypeScript). Different stacks have different amounts of required boilerplate.",
+        },
+        {
+          term: "Benchmark",
+          def: "A controlled test where multiple subjects perform the same task under the same conditions, so results are directly comparable.",
+        },
+        {
+          term: "Tokenizer",
+          def: "The algorithm that splits text into tokens. This benchmark uses cl100k_base — the same one used by ChatGPT and GitHub Copilot — so results reflect real-world AI costs.",
+        },
+        {
+          term: "Handwritten vs Operational",
+          def: "Handwritten = code a developer writes to solve the problem. Operational = files the framework or package manager forces you to have (like lockfiles). Both are included in the total token count.",
+        },
+      ],
     },
   },
   "pt-BR": {
@@ -540,13 +571,16 @@ const translations = {
         "SyntaxTax é um benchmark controlado que mede o custo textual de implementações equivalentes de APIs web em 10 stacks diferentes. A questão central não é qual framework é \"melhor\" — é quanto contexto de tokens um modelo de linguagem precisa consumir para entender ou modificar uma base de código completa e idiomática.",
       researchQuestion:
         "Quantos tokens são necessários para implementar a mesma API em 10 stacks web diferentes?",
-      constraintsTitle: "Restrições experimentais",
+      whyLabel: "Por que isso importa?",
+      whyBody:
+        "Toda vez que uma ferramenta de IA (como GitHub Copilot ou ChatGPT) lê o seu código-fonte, ela paga um custo medido em tokens — os fragmentos que os LLMs (large language models) usam para processar texto. Quanto maior o token count, mais provável que o modelo atinja o limite do seu context window e perca referências de código anterior. O SyntaxTax mede esse custo em 10 stacks reais implementando o mesmo mini-aplicativo, para que você veja se a sua stack está trabalhando a seu favor — ou contra você — num fluxo assistido por LLMs.",
+      constraintsTitle: "Como o experimento é controlado",
       constraints: [
-        "Todas as 10 stacks implementam o mesmo domínio e passam pelo mesmo validador funcional antes de serem medidas.",
-        "O tokenizer é fixo em cl100k_base (família GPT-4 / GPT-3.5), com ordenação alfabética estável e estratégia pure_content_only.",
-        "Diretórios vendor, arquivos de teste, artefatos de build e ambientes virtuais são sempre excluídos.",
-        "As stacks são agrupadas em duas rodadas metodológicas: microframeworks API-first e frameworks opinionated.",
-        "O benchmark mede o resultado textual da implementação final — não o custo de geração.",
+        "Todas as 10 stacks implementam o mesmo aplicativo (mesmas funcionalidades, mesmas regras de negócio) e passam pelo mesmo validador funcional — validate.py — antes de serem medidas. Isso garante que as diferenças de token count venham da verbosidade da stack, não de diferenças de escopo.",
+        "O tokenizer é fixado em cl100k_base — o mesmo algoritmo que ChatGPT e GitHub Copilot usam para dividir texto em tokens — com ordenação alfabética estável e estratégia pure_content_only, que contabiliza apenas o conteúdo literal do código-fonte.",
+        "Diretórios gerados automaticamente (vendor/, node_modules/, artefatos de build, ambientes virtuais como .venv) e arquivos de teste são sempre excluídos. Apenas arquivos-fonte intencionais são contados.",
+        "As stacks são agrupadas em duas rodadas metodológicas: Rodada A (microframeworks API-first — mínimos, sem convenções impostas) e Rodada B (frameworks opinionated — completos, com estrutura e convenções obrigatórias). A comparação é válida apenas dentro da mesma rodada.",
+        "O benchmark mede o resultado textual do snapshot final do repositório — não o custo de gerar código com uma IA. A pergunta respondida é: qual o custo em tokens para um LLM ler este codebase?",
       ],
       domainTitle: "O domínio: mini sistema de pedidos",
       domainBody:
@@ -582,21 +616,25 @@ const translations = {
           name: "Tokens totais",
           color: "ember",
           desc: "Todos os arquivos medidos juntos — código handwritten mais extras operacionais. Este é o custo total de contexto da stack.",
+          plain: "Em termos de LLM: o custo total do context window para carregar essa stack. Menor = o modelo retém mais memória de trabalho para a sua tarefa.",
         },
         {
           name: "Tokens handwritten",
           color: "aqua",
           desc: "Apenas os arquivos que implementam a aplicação: modelos de domínio, handlers de API e código de persistência. Exclui lockfiles e configs.",
+          plain: "O sinal limpo: o que o desenvolvedor escreveu para resolver o problema, sem o ruído do ecossistema. É a melhor lente para comparar a verbosidade real dos frameworks.",
         },
         {
           name: "Tokens operacionais",
           color: "slateblue",
-          desc: "Lockfiles, manifests de pacotes, configuração de framework. Representa o overhead do ecossistema, não a lógica da aplicação.",
+          desc: "Lockfiles (package-lock.json, Gemfile.lock), manifests de pacotes (package.json, composer.json) e config de framework. Overhead do ecossistema, não lógica da aplicação.",
+          plain: "A \"taxa de entrada\" da stack — arquivos que o framework ou gerenciador de pacotes obriga a ter, independente do que a aplicação faz.",
         },
         {
           name: "Razão operacional",
           color: "sand",
-          desc: "operational_tokens ÷ total_tokens. Valores altos indicam stacks onde a infraestrutura do ecossistema domina o corpus.",
+          desc: "operational_tokens ÷ total_tokens. Valores altos indicam stacks onde lockfiles e config dominam o corpus em relação ao código da aplicação.",
+          plain: "Qual fatia do orçamento total de tokens é puro overhead. Uma razão de 0,60 significa que 60% dos tokens que um LLM lê são infraestrutura, não a sua aplicação.",
         },
       ],
       browserTitle: "Browser de arquivos — o que é medido",
@@ -609,6 +647,30 @@ const translations = {
         operational: "bg-sand border border-black/10 text-slateblue/70",
       },
       noDomainNote: "Sem camada de domínio — SQL puro / PDO sem abstração ORM",
+      glossaryTitle: "Glossário",
+      glossaryBody: "Não conhece alguns desses termos? Aqui está o que eles significam em linguagem simples.",
+      glossary: [
+        {
+          term: "Token",
+          def: "Um pequeno fragmento de texto — em média, cerca de ¾ de uma palavra. Modelos de IA leem e geram texto em tokens. Mais tokens = custo maior e respostas mais lentas.",
+        },
+        {
+          term: "Framework / Stack",
+          def: "Um conjunto pré-construído de ferramentas e convenções para desenvolver aplicações web. Exemplos: Rails (Ruby), Django (Python), NestJS (TypeScript). Diferentes stacks têm quantidades diferentes de código obrigatório.",
+        },
+        {
+          term: "Benchmark",
+          def: "Um teste controlado onde vários concorrentes executam a mesma tarefa sob as mesmas condições, para que os resultados sejam diretamente comparáveis.",
+        },
+        {
+          term: "Tokenizer",
+          def: "O algoritmo que divide texto em tokens. Este benchmark usa cl100k_base — o mesmo usado pelo ChatGPT e pelo GitHub Copilot — para que os resultados reflitam custos reais de IA.",
+        },
+        {
+          term: "Handwritten vs Operacional",
+          def: "Handwritten = código que o desenvolvedor escreveu para resolver o problema. Operacional = arquivos que o framework ou gerenciador de pacotes obriga a ter (como lockfiles). Ambos entram na contagem total de tokens.",
+        },
+      ],
     },
   },
 };
@@ -732,6 +794,10 @@ function renderAboutPage() {
   setText("about-hero-body", a.heroBody);
   setText("about-research-question", `"${a.researchQuestion}"`);
 
+  // Why it matters
+  setText("about-why-label", a.whyLabel);
+  setText("about-why-body", a.whyBody);
+
   // Constraints
   setText("about-constraints-title", a.constraintsTitle);
   document.getElementById("about-constraints-list").innerHTML = a.constraints
@@ -808,12 +874,13 @@ function renderAboutPage() {
     .map((m) => {
       const accent = METRIC_ACCENT[m.color] ?? METRIC_ACCENT.sand;
       return `
-        <article class="rounded-[1.5rem] border border-black/5 bg-white p-6 shadow-panel">
-          <div class="flex items-center gap-2 mb-3">
+        <article class="rounded-[1.5rem] border border-black/5 bg-white p-6 shadow-panel flex flex-col gap-3">
+          <div class="flex items-center gap-2">
             <span class="h-2.5 w-2.5 rounded-full shrink-0 ${accent.dot}"></span>
             <h3 class="font-semibold text-sm ${accent.text}">${m.name}</h3>
           </div>
           <p class="text-sm leading-7 text-slateblue/80">${m.desc}</p>
+          ${m.plain ? `<p class="mt-auto border-t border-black/5 pt-3 text-xs leading-6 text-slateblue/55 italic">${m.plain}</p>` : ""}
         </article>`;
     })
     .join("");
@@ -824,6 +891,19 @@ function renderAboutPage() {
 
   renderFileBrowser("about-browser-group-apifirst", "api_first", a);
   renderFileBrowser("about-browser-group-opinionated", "opinionated", a);
+
+  // Glossary
+  setText("about-glossary-title", a.glossaryTitle);
+  setText("about-glossary-body", a.glossaryBody);
+  document.getElementById("about-glossary-list").innerHTML = a.glossary
+    .map(
+      (g) => `
+        <div class="rounded-[1.5rem] border border-black/5 bg-white p-5 shadow-panel">
+          <div class="font-bold text-sm text-slateblue">${g.term}</div>
+          <p class="mt-2 text-sm leading-7 text-slateblue/75">${g.def}</p>
+        </div>`
+    )
+    .join("");
 }
 
 function renderFileBrowser(containerId, category, a) {
