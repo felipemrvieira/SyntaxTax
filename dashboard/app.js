@@ -1319,7 +1319,7 @@ function buildShareCard(cardTitle, ranked, key, formatter) {
   const footer = document.createElement("div");
   footer.style.cssText = "padding:14px 28px;border-top:1px solid rgba(167,243,208,0.15);display:flex;align-items:center;justify-content:space-between;background:rgba(167,243,208,0.04);";
   footer.innerHTML = [
-    `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#a7f3d0;letter-spacing:0.05em;">↗ github.com/felipemrvieira/SyntaxTax</span>`,
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#a7f3d0;letter-spacing:0.05em;">↗ felipemrvieira.github.io/SyntaxTax</span>`,
     `<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(247,243,234,0.35);">${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>`,
   ].join("");
 
@@ -1373,7 +1373,7 @@ function openShareModal(blob, cardTitle, ranked, key, formatter) {
   const actionsEl = document.getElementById("share-modal-actions");
   actionsEl.innerHTML = "";
 
-  const pageUrl = "https://github.com/felipemrvieira/SyntaxTax";
+  const pageUrl = "https://felipemrvieira.github.io/SyntaxTax";
   const shareText = sm.shareText(cardTitle, topEntry.framework, formatter(topEntry[key]));
   const file = new File([blob], `syntaxtax-${key}.png`, { type: "image/png" });
 
