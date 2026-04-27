@@ -2,6 +2,8 @@
 
 Benchmark de eficiência de tokens em stacks web modernas para LLMs.
 
+**Dashboard:** [felipemrvieira.github.io/SyntaxTax/dashboard/](https://felipemrvieira.github.io/SyntaxTax/dashboard/)
+
 ## Objetivo
 
 Comparar o custo textual de implementação de funcionalidades equivalentes em diferentes stacks web de mercado, medindo tokens, LOC, caracteres e estrutura, com foco em contexto consumido por modelos de linguagem.
