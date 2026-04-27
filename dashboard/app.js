@@ -102,6 +102,16 @@ const STACKS_MANIFEST = [
 ];
 
 
+const AUTHOR = {
+  name: "Felipe Maciel Ramos Vieira",
+  handle: "@felipemrvieira",
+  bio: "Engineer & Researcher | Arquitetura Evolutiva \u2022 Cloud-Native \u2022 SaaS Multi-Tenant",
+  location: "\uD83D\uDCCD Recife, Brasil",
+  avatar: "https://avatars.githubusercontent.com/u/13780312?v=4",
+  github: "https://github.com/felipemrvieira",
+  linkedin: "https://www.linkedin.com/in/felipemrvieira",
+};
+
 const translations = {
   en: {
     htmlLang: "en",
@@ -248,6 +258,33 @@ const translations = {
     },
     navDashboard: "Dashboard",
     navAbout: "About the Study",
+    navAuthor: "Author",
+    author: {
+      bioTitle: "Who's behind this?",
+      bioBody:
+        "Felipe is a software engineer and researcher based in Recife, Brazil. SyntaxTax was created to address a real methodological gap: no structured benchmark existed to compare the token cost of equivalent web API implementations across different stacks \u2014 a key concern in LLM-assisted development workflows.",
+      tags: ["Arquitetura Evolutiva", "Cloud-Native", "SaaS Multi-Tenant", "Engineering Research"],
+      locationLabel: "\uD83D\uDCCD Recife, Brasil",
+      contactTitle: "Get in touch",
+      contactBody:
+        "Interested in the methodology, the results, or a potential collaboration? Reach out via GitHub or LinkedIn.",
+      contactCards: [
+        {
+          label: "GitHub",
+          handle: "@felipemrvieira",
+          url: "https://github.com/felipemrvieira",
+          color: "ember",
+          desc: "Source code, issues \u0026 discussions",
+        },
+        {
+          label: "LinkedIn",
+          handle: "in/felipemrvieira",
+          url: "https://www.linkedin.com/in/felipemrvieira",
+          color: "aqua",
+          desc: "Professional network \u0026 career",
+        },
+      ],
+    },
     about: {
       heroTitle: "What is SyntaxTax?",
       heroBody:
@@ -470,6 +507,33 @@ const translations = {
     },
     navDashboard: "Painel",
     navAbout: "Sobre o Estudo",
+    navAuthor: "Autor",
+    author: {
+      bioTitle: "Quem est\u00e1 por tr\u00e1s disso?",
+      bioBody:
+        "Felipe \u00e9 engenheiro de software e pesquisador baseado em Recife, Brasil. O SyntaxTax foi criado para preencher uma lacuna metodol\u00f3gica real: n\u00e3o existia nenhum benchmark estruturado para comparar o custo de tokens de implementa\u00e7\u00f5es equivalentes de APIs web em diferentes stacks \u2014 um ponto cr\u00edtico em workflows de desenvolvimento assistidos por LLMs.",
+      tags: ["Arquitetura Evolutiva", "Cloud-Native", "SaaS Multi-Tenant", "Pesquisa em Engenharia"],
+      locationLabel: "\uD83D\uDCCD Recife, Brasil",
+      contactTitle: "Entre em contato",
+      contactBody:
+        "Interessado na metodologia, nos resultados ou em uma poss\u00edvel colabora\u00e7\u00e3o? Entre em contato pelo GitHub ou LinkedIn.",
+      contactCards: [
+        {
+          label: "GitHub",
+          handle: "@felipemrvieira",
+          url: "https://github.com/felipemrvieira",
+          color: "ember",
+          desc: "C\u00f3digo-fonte, issues e discuss\u00f5es",
+        },
+        {
+          label: "LinkedIn",
+          handle: "in/felipemrvieira",
+          url: "https://www.linkedin.com/in/felipemrvieira",
+          color: "aqua",
+          desc: "Rede profissional e carreira",
+        },
+      ],
+    },
     about: {
       heroTitle: "O que é SyntaxTax?",
       heroBody:
@@ -836,12 +900,78 @@ function buildFilePanelHtml(stack, a) {
     </div>`;
 }
 
+// ── Author page ─────────────────────────────────────────────────────────────
+
+function renderAuthorPage() {
+  const a = getCopy().author;
+
+  setText("author-name", AUTHOR.name);
+  setText("author-handle", AUTHOR.handle);
+  setText("author-location", a.locationLabel);
+
+  // Profile links
+  document.getElementById("author-links").innerHTML = `
+    <a href="${AUTHOR.github}" target="_blank" rel="noopener noreferrer"
+      class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-2.5 text-sm font-semibold transition hover:bg-white/20">
+      <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+      </svg>
+      <div class="text-left">
+        <div>${AUTHOR.handle}</div>
+        <div class="font-mono text-[10px] text-white/50">GitHub</div>
+      </div>
+    </a>
+    <a href="${AUTHOR.linkedin}" target="_blank" rel="noopener noreferrer"
+      class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-2.5 text-sm font-semibold transition hover:bg-white/20">
+      <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+      <div class="text-left">
+        <div>in/felipemrvieira</div>
+        <div class="font-mono text-[10px] text-white/50">LinkedIn</div>
+      </div>
+    </a>
+  `;
+
+  setText("author-bio-title", a.bioTitle);
+  setText("author-bio-body", a.bioBody);
+
+  document.getElementById("author-tags").innerHTML = a.tags
+    .map(
+      (tag) =>
+        `<span class="inline-flex rounded-full border border-black/8 bg-sand px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-slateblue/70">${tag}</span>`
+    )
+    .join("");
+
+  setText("author-contact-title", a.contactTitle);
+  setText("author-contact-body", a.contactBody);
+
+  document.getElementById("author-contact-cards").innerHTML = a.contactCards
+    .map((card) => {
+      const isEmber = card.color === "ember";
+      const accent = isEmber
+        ? { pill: "bg-ember/15 text-ember", arrow: "text-ember" }
+        : { pill: "bg-aqua/30 text-slateblue", arrow: "text-slateblue/60" };
+      return `
+        <a href="${card.url}" target="_blank" rel="noopener noreferrer"
+          class="group flex flex-col gap-3 rounded-[2rem] border border-black/5 bg-white p-6 shadow-panel transition hover:scale-[1.015]">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-base font-bold">${card.label}</span>
+            <span class="font-mono text-xs ${accent.pill} rounded-full px-2 py-0.5">${card.handle}</span>
+          </div>
+          <p class="text-sm leading-6 text-slateblue/70">${card.desc}</p>
+          <div class="mt-auto font-mono text-xs ${accent.arrow}">Visit \u2192</div>
+        </a>`;
+    })
+    .join("");
+}
+
 // ── Tab management ───────────────────────────────────────────────────────────
 
 function applyTabState(tab) {
-  const isDashboard = tab === "dashboard";
-  document.getElementById("view-dashboard").classList.toggle("hidden", !isDashboard);
-  document.getElementById("view-about").classList.toggle("hidden", isDashboard);
+  document.getElementById("view-dashboard").classList.toggle("hidden", tab !== "dashboard");
+  document.getElementById("view-about").classList.toggle("hidden", tab !== "about");
+  document.getElementById("view-author").classList.toggle("hidden", tab !== "author");
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     const active = btn.dataset.tab === tab;
@@ -856,6 +986,7 @@ function applyTabState(tab) {
 function initTabs() {
   setText("nav-dashboard-label", getCopy().navDashboard);
   setText("nav-about-label", getCopy().navAbout);
+  setText("nav-author-label", getCopy().navAuthor);
 
   const stored = localStorage.getItem(TAB_STORAGE_KEY) || "dashboard";
   applyTabState(stored);
@@ -921,8 +1052,10 @@ function setupLocaleSwitcher() {
         renderStaticCopy();
       }
       renderAboutPage();
+      renderAuthorPage();
       setText("nav-dashboard-label", getCopy().navDashboard);
       setText("nav-about-label", getCopy().navAbout);
+      setText("nav-author-label", getCopy().navAuthor);
       renderLocaleState();
     });
   });
@@ -1287,6 +1420,7 @@ async function boot() {
   currentLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || DEFAULT_LOCALE;
   renderStaticCopy();
   renderAboutPage();
+  renderAuthorPage();
   initTabs();
   setupLocaleSwitcher();
 

@@ -64,6 +64,17 @@
         </svg>
         <span id="nav-about-label"></span>
       </button>
+
+      <!-- Author tab — pushed to the right -->
+      <div class="ml-auto">
+        <button type="button"
+          class="tab-btn inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] transition"
+          data-tab="author">
+          <img src="https://avatars.githubusercontent.com/u/13780312?v=4" alt="Felipe Maciel"
+            class="h-5 w-5 rounded-full ring-1 ring-black/10" />
+          <span id="nav-author-label"></span>
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -273,6 +284,42 @@
       </section>
 
     </div><!-- /view-about -->
+
+    <!-- ── AUTHOR VIEW ──────────────────────────────────────────────── -->
+    <div id="view-author" class="hidden">
+
+      <!-- Identity -->
+      <section class="grid gap-8 lg:grid-cols-[0.65fr_1.35fr]">
+        <!-- Left card: avatar + links -->
+        <div
+          class="flex flex-col items-center rounded-[2rem] border border-black/5 bg-slateblue p-8 text-center text-white shadow-panel">
+          <img src="https://avatars.githubusercontent.com/u/13780312?v=4" alt="Felipe Maciel Ramos Vieira"
+            class="h-28 w-28 rounded-full ring-4 ring-white/20" />
+          <h1 id="author-name" class="mt-5 text-xl font-bold leading-tight"></h1>
+          <p id="author-handle" class="mt-1 font-mono text-xs text-white/50"></p>
+          <p id="author-location" class="mt-4 font-mono text-xs text-white/60"></p>
+          <div id="author-links" class="mt-8 flex w-full flex-col gap-3"></div>
+        </div>
+        <!-- Right card: bio -->
+        <div class="rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-panel backdrop-blur">
+          <div
+            class="mb-6 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1 font-mono text-xs uppercase tracking-[0.24em] text-slateblue">
+            SyntaxTax · Author
+          </div>
+          <h2 id="author-bio-title" class="text-3xl font-bold tracking-tight sm:text-4xl"></h2>
+          <p id="author-bio-body" class="mt-5 text-sm leading-7 text-slateblue/80"></p>
+          <div id="author-tags" class="mt-6 flex flex-wrap gap-2"></div>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section class="mt-12">
+        <h2 id="author-contact-title" class="text-2xl font-bold tracking-tight sm:text-3xl"></h2>
+        <p id="author-contact-body" class="mt-2 max-w-3xl text-sm leading-7 text-slateblue/80"></p>
+        <div id="author-contact-cards" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+    </div><!-- /view-author -->
 
   </main>
 
