@@ -65,8 +65,38 @@
         <span id="nav-about-label"></span>
       </button>
 
-      <!-- Author tab — pushed to the right -->
-      <div class="ml-auto">
+      <!-- Author tab + locale switcher — pushed to the right -->
+      <div class="ml-auto flex items-center gap-2">
+        <!-- Locale switcher -->
+        <div class="inline-flex items-center gap-1 rounded-full border border-black/8 bg-sand/60 p-1">
+          <button type="button"
+            class="locale-toggle inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-slateblue transition"
+            data-locale="en" aria-label="Switch language to English">
+            <span class="flex h-4 w-4 items-center overflow-hidden rounded-full border border-black/10">
+              <svg viewBox="0 0 60 60" class="h-full w-full" aria-hidden="true">
+                <rect width="60" height="60" fill="#b22234"></rect>
+                <path d="M0 7h60M0 21h60M0 35h60M0 49h60" stroke="#fff" stroke-width="6"></path>
+                <rect width="28" height="28" fill="#3c3b6e"></rect>
+              </svg>
+            </span>
+            EN
+          </button>
+          <button type="button"
+            class="locale-toggle inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-slateblue transition"
+            data-locale="pt-BR" aria-label="Mudar idioma para português">
+            <span class="flex h-4 w-4 items-center overflow-hidden rounded-full border border-black/10">
+              <svg viewBox="0 0 60 60" class="h-full w-full" aria-hidden="true">
+                <rect width="60" height="60" fill="#009c3b"></rect>
+                <path d="M30 8 52 30 30 52 8 30Z" fill="#ffdf00"></path>
+                <circle cx="30" cy="30" r="10" fill="#002776"></circle>
+              </svg>
+            </span>
+            PT
+          </button>
+        </div>
+        <!-- Divider -->
+        <div class="h-5 w-px bg-black/10"></div>
+        <!-- Author tab -->
         <button type="button"
           class="tab-btn inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] transition"
           data-tab="author">
@@ -88,32 +118,6 @@
             <div
               class="mb-6 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1 font-mono text-xs uppercase tracking-[0.24em] text-slateblue">
               SyntaxTax Benchmark
-            </div>
-            <div class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/90 p-1">
-              <button type="button"
-                class="locale-toggle inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-xs uppercase tracking-[0.18em] text-slateblue transition"
-                data-locale="en" aria-label="Switch language to English">
-                <span class="flex h-5 w-5 items-center overflow-hidden rounded-full border border-black/10">
-                  <svg viewBox="0 0 60 60" class="h-full w-full" aria-hidden="true">
-                    <rect width="60" height="60" fill="#b22234"></rect>
-                    <path d="M0 7h60M0 21h60M0 35h60M0 49h60" stroke="#fff" stroke-width="6"></path>
-                    <rect width="28" height="28" fill="#3c3b6e"></rect>
-                  </svg>
-                </span>
-                EN
-              </button>
-              <button type="button"
-                class="locale-toggle inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-xs uppercase tracking-[0.18em] text-slateblue transition"
-                data-locale="pt-BR" aria-label="Mudar idioma para português">
-                <span class="flex h-5 w-5 items-center overflow-hidden rounded-full border border-black/10">
-                  <svg viewBox="0 0 60 60" class="h-full w-full" aria-hidden="true">
-                    <rect width="60" height="60" fill="#009c3b"></rect>
-                    <path d="M30 8 52 30 30 52 8 30Z" fill="#ffdf00"></path>
-                    <circle cx="30" cy="30" r="10" fill="#002776"></circle>
-                  </svg>
-                </span>
-                PT
-              </button>
             </div>
           </div>
           <h1 id="hero-title" class="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl"></h1>
@@ -338,6 +342,32 @@
 
   </main>
 
+  <!-- Share modal -->
+  <div id="share-modal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center p-4"
+    role="dialog" aria-modal="true" aria-labelledby="share-modal-title" style="display:none">
+    <div id="share-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 id="share-modal-title" class="font-bold text-lg text-ink"></h2>
+        <button id="share-modal-close" type="button"
+          class="flex h-8 w-8 items-center justify-center rounded-full border border-black/8 bg-sand transition hover:bg-sand/70"
+          aria-label="Close">
+          <svg class="h-3.5 w-3.5 text-slateblue/70" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <!-- Preview -->
+      <img id="share-modal-preview" class="w-full rounded-2xl border border-black/5 mb-5 max-h-64 object-contain bg-sand/30"
+        alt="" />
+      <!-- Actions -->
+      <div id="share-modal-actions" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="./app.js"></script>
 </body>
 

@@ -259,6 +259,19 @@ const translations = {
     navDashboard: "Dashboard",
     navAbout: "About the Study",
     navAuthor: "Author",
+    shareModal: {
+      title: "Share this ranking",
+      downloadLabel: "Download image",
+      copyLabel: "Copy image",
+      copiedLabel: "Copied \u2713",
+      nativeLabel: "Share\u2026",
+      twitterLabel: "\uD835\uDD4F / Twitter",
+      linkedinLabel: "LinkedIn",
+      whatsappLabel: "WhatsApp",
+      note: "Tip: download the image and attach it manually on platforms that don't support direct image uploads.",
+      shareText: (title, framework, value) =>
+        `\uD83C\uDFC6 ${framework} leads the \u201c${title}\u201d ranking with ${value} \u2014 measured by the SyntaxTax Benchmark. How does your stack compare?`,
+    },
     author: {
       bioTitle: "Who's behind this?",
       bioBody:
@@ -539,6 +552,19 @@ const translations = {
     navDashboard: "Painel",
     navAbout: "Sobre o Estudo",
     navAuthor: "Autor",
+    shareModal: {
+      title: "Compartilhar ranking",
+      downloadLabel: "Baixar imagem",
+      copyLabel: "Copiar imagem",
+      copiedLabel: "Copiado \u2713",
+      nativeLabel: "Compartilhar\u2026",
+      twitterLabel: "\uD835\uDD4F / Twitter",
+      linkedinLabel: "LinkedIn",
+      whatsappLabel: "WhatsApp",
+      note: "Dica: baixe a imagem e anexe manualmente em plataformas que n\u00e3o suportam upload direto de imagem.",
+      shareText: (title, framework, value) =>
+        `\uD83C\uDFC6 ${framework} lidera o ranking \u201c${title}\u201d com ${value} \u2014 medido pelo SyntaxTax Benchmark. Como est\u00e1 a sua stack?`,
+    },
     author: {
       bioTitle: "Quem est\u00e1 por tr\u00e1s disso?",
       bioBody:
@@ -1222,9 +1248,171 @@ function renderMethodologyCards() {
     .join("");
 }
 
+// ── Share card ───────────────────────────────────────────────────────────────
+
+function initShareModal() {
+  const modal = document.getElementById("share-modal");
+  const closeBtn = document.getElementById("share-modal-close");
+  const backdrop = document.getElementById("share-modal-backdrop");
+
+  function closeModal() {
+    modal.style.display = "none";
+    const preview = document.getElementById("share-modal-preview");
+    if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src);
+    preview.src = "";
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+  backdrop.addEventListener("click", closeModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.style.display !== "none") closeModal();
+  });
+}
+
+async function captureAndShare(panel, title, ranked, key, formatter) {
+  const btn = panel.querySelector(".ranking-share-btn");
+  const prevHTML = btn.innerHTML;
+
+  // Loading spinner
+  btn.innerHTML = `<svg class="h-3.5 w-3.5 animate-spin text-slateblue/60" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>`;
+  btn.disabled = true;
+  btn.style.visibility = "hidden"; // hide from capture
+
+  try {
+    const canvas = await html2canvas(panel, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    btn.style.visibility = "";
+    btn.innerHTML = prevHTML;
+    btn.disabled = false;
+
+    canvas.toBlob(
+      (blob) => openShareModal(blob, title, ranked[0], key, formatter),
+      "image/png"
+    );
+  } catch (err) {
+    btn.style.visibility = "";
+    btn.innerHTML = prevHTML;
+    btn.disabled = false;
+    console.error("Capture failed:", err);
+  }
+}
+
+function openShareModal(blob, cardTitle, topEntry, key, formatter) {
+  const sm = getCopy().shareModal;
+  const modal = document.getElementById("share-modal");
+
+  document.getElementById("share-modal-title").textContent = sm.title;
+  const preview = document.getElementById("share-modal-preview");
+  preview.src = URL.createObjectURL(blob);
+
+  const actionsEl = document.getElementById("share-modal-actions");
+  actionsEl.innerHTML = "";
+
+  const pageUrl = window.location.href.split("?")[0];
+  const shareText = sm.shareText(cardTitle, topEntry.framework, formatter(topEntry[key]));
+  const file = new File([blob], `syntaxtax-${key}.png`, { type: "image/png" });
+
+  // ── Primary row: Download | Copy | Native share ──
+  const primaryRow = document.createElement("div");
+  primaryRow.className = "flex gap-2";
+
+  // Download button
+  const dlBtn = makeModalBtn(sm.downloadLabel, "flex-1 bg-sand text-slateblue hover:bg-sand/70", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    a.click();
+  });
+
+  // Copy image button
+  const copyBtn = makeModalBtn(sm.copyLabel, "flex-1 bg-sand text-slateblue hover:bg-sand/70", async (btn) => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      btn.textContent = sm.copiedLabel;
+      setTimeout(() => (btn.textContent = sm.copyLabel), 2000);
+    } catch {
+      dlBtn.click(); // fallback to download
+    }
+  });
+
+  primaryRow.append(dlBtn, copyBtn);
+
+  // Native share (mobile / OS-level share sheet)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    const nativeBtn = makeModalBtn(sm.nativeLabel, "flex-1 bg-slateblue text-white hover:bg-slateblue/90", async () => {
+      await navigator.share({ files: [file], title: cardTitle, text: shareText });
+    });
+    primaryRow.append(nativeBtn);
+  }
+
+  actionsEl.append(primaryRow);
+
+  // ── Platform row ──
+  const platformRow = document.createElement("div");
+  platformRow.className = "grid grid-cols-3 gap-2";
+
+  const tweetText = `${shareText}\n${pageUrl}`;
+  platformRow.append(
+    makeModalBtn(sm.twitterLabel, "bg-black text-white hover:bg-black/80 text-xs font-bold py-2.5", () => {
+      window.open(
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`,
+        "_blank", "noopener,noreferrer"
+      );
+    }),
+    makeModalBtn(sm.linkedinLabel, "bg-[#0A66C2] text-white hover:opacity-90 text-xs font-bold py-2.5", () => {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}&summary=${encodeURIComponent(shareText)}`,
+        "_blank", "noopener,noreferrer"
+      );
+    }),
+    makeModalBtn(sm.whatsappLabel, "bg-[#25D366] text-white hover:opacity-90 text-xs font-bold py-2.5", () => {
+      window.open(
+        `https://api.whatsapp.com/send?text=${encodeURIComponent(tweetText)}`,
+        "_blank", "noopener,noreferrer"
+      );
+    })
+  );
+
+  actionsEl.append(platformRow);
+
+  // Tip note
+  const note = document.createElement("p");
+  note.className = "text-center text-[11px] leading-5 text-slateblue/45";
+  note.textContent = sm.note;
+  actionsEl.append(note);
+
+  modal.style.display = "flex";
+}
+
+function makeModalBtn(label, extraClass, onClick) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = `rounded-2xl px-4 py-3 text-sm font-semibold transition ${extraClass}`;
+  btn.textContent = label;
+  btn.addEventListener("click", () => onClick(btn));
+  return btn;
+}
+
 function renderRankingCard(title, key, rows, formatter, accentClass, direction = "asc", subtitle = "") {
   const ranked = sortedBy(rows, key, direction);
   const panel = createPanel(title);
+
+  // Inject share button into the card header
+  const headerDiv = panel.querySelector("div.mb-5");
+  headerDiv.className = "mb-5 flex items-start justify-between gap-3";
+  const shareBtn = document.createElement("button");
+  shareBtn.type = "button";
+  shareBtn.className =
+    "ranking-share-btn mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full border border-black/8 bg-sand/60 text-slateblue/60 transition hover:bg-aqua/20 hover:text-slateblue hover:border-aqua/40";
+  shareBtn.setAttribute("aria-label", getCopy().shareModal.title);
+  shareBtn.innerHTML = `<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  headerDiv.append(shareBtn);
+  shareBtn.addEventListener("click", () => captureAndShare(panel, title, ranked, key, formatter));
   if (subtitle) {
     const copy = document.createElement("p");
     copy.className = "mb-5 -mt-2 text-sm leading-7 text-slateblue/80";
@@ -1501,6 +1689,7 @@ async function boot() {
   renderStaticCopy();
   renderAboutPage();
   renderAuthorPage();
+  initShareModal();
   initTabs();
   setupLocaleSwitcher();
 
