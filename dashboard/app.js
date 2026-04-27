@@ -3,8 +3,104 @@ const SUMMARY_CANDIDATES = ["./data/summary.csv", "../results/summary.csv"];
 const METADATA_CANDIDATES = ["./data/metadata.json"];
 const DEFAULT_LOCALE = "en";
 const LOCALE_STORAGE_KEY = "syntaxtax-dashboard-locale";
+const TAB_STORAGE_KEY = "syntaxtax-dashboard-tab";
 
 let currentLocale = DEFAULT_LOCALE;
+
+// ── Stack manifest (mirrors benchmark_config.yaml) ──────────────────────────
+const STACKS_MANIFEST = [
+  {
+    id: "fastapi", framework: "FastAPI", language: "Python", orm: "SQLAlchemy", category: "api_first",
+    handwritten: {
+      domain: ["models/**/*.py", "schemas/**/*.py"],
+      api: ["main.py", "routers/**/*.py"],
+      persistence: ["database.py", "alembic/versions/**/*.py"],
+    },
+    operational: ["requirements.txt", "alembic.ini", "alembic/env.py"],
+  },
+  {
+    id: "sinatra", framework: "Sinatra", language: "Ruby", orm: "ActiveRecord", category: "api_first",
+    handwritten: {
+      domain: ["models/**/*.rb"],
+      api: ["app.rb"],
+      persistence: ["database.rb", "db/migrate/**/*.rb"],
+    },
+    operational: ["Gemfile", "config.ru"],
+  },
+  {
+    id: "express", framework: "Express", language: "JavaScript", orm: "Prisma", category: "api_first",
+    handwritten: {
+      domain: ["src/schemas/**/*.js", "prisma/schema.prisma"],
+      api: ["src/app.js", "src/routes/**/*.js", "src/controllers/**/*.js", "src/serializers/**/*.js"],
+      persistence: ["src/db/**/*.js", "prisma/migrations/**/*"],
+    },
+    operational: ["package.json"],
+  },
+  {
+    id: "gin", framework: "Gin", language: "Go", orm: "GORM", category: "api_first",
+    handwritten: {
+      domain: ["models/**/*.go", "schemas/**/*.go"],
+      api: ["handlers/**/*.go", "main.go"],
+      persistence: ["db/**/*.go", "db/migrations/**/*.sql"],
+    },
+    operational: ["go.mod", "go.sum"],
+  },
+  {
+    id: "slim", framework: "Slim", language: "PHP", orm: "PDO SQLite", category: "api_first",
+    handwritten: {
+      domain: [],
+      api: ["public/index.php", "config/*.php", "src/Handlers/**/*.php"],
+      persistence: ["src/Db/**/*.php", "database/migrations/**/*.sql"],
+    },
+    operational: ["composer.json", "composer.lock"],
+  },
+  {
+    id: "rails", framework: "Rails", language: "Ruby", orm: "ActiveRecord", category: "opinionated",
+    handwritten: {
+      domain: ["app/models/**/*.rb"],
+      api: ["app/controllers/**/*.rb", "config/routes.rb"],
+      persistence: ["db/migrate/**/*.rb"],
+    },
+    operational: ["Gemfile", "config/database.yml", "config/application.rb"],
+  },
+  {
+    id: "django", framework: "Django", language: "Python", orm: "Django ORM", category: "opinionated",
+    handwritten: {
+      domain: ["app/models.py", "app/serializers.py"],
+      api: ["app/views.py", "app/urls.py"],
+      persistence: ["app/migrations/**/*.py"],
+    },
+    operational: ["manage.py", "requirements.txt", "config/settings.py", "config/urls.py", "config/asgi.py", "config/wsgi.py"],
+  },
+  {
+    id: "nestjs", framework: "NestJS", language: "TypeScript", orm: "Prisma", category: "opinionated",
+    handwritten: {
+      domain: ["prisma/schema.prisma", "src/**/*.dto.ts"],
+      api: ["src/main.ts", "src/app.module.ts", "src/{users,products,orders}/**/*.controller.ts", "src/{users,products,orders}/**/*.service.ts", "src/{users,products,orders}/**/*.module.ts"],
+      persistence: ["src/prisma/**/*.ts", "prisma/migrations/**/*"],
+    },
+    operational: ["package.json", "package-lock.json", "tsconfig.json"],
+  },
+  {
+    id: "springboot", framework: "Spring Boot", language: "Java", orm: "Spring Data JPA", category: "opinionated",
+    handwritten: {
+      domain: ["src/…/users/User.java", "src/…/users/CreateUserRequest.java", "src/…/products/Product.java", "src/…/products/CreateProductRequest.java", "src/…/orders/{Order,OrderItem}.java", "src/…/orders/dto/**/*.java"],
+      api: ["src/…/Application.java", "src/…/config/**/*.java", "src/…/{users,products,orders}/*Controller.java", "src/…/orders/OrderService.java"],
+      persistence: ["src/…/**/*Repository.java", "src/main/resources/schema.sql"],
+    },
+    operational: ["pom.xml", "src/main/resources/application.properties"],
+  },
+  {
+    id: "laravel", framework: "Laravel", language: "PHP", orm: "Eloquent", category: "opinionated",
+    handwritten: {
+      domain: ["app/Models/**/*.php"],
+      api: ["routes/api.php", "app/Http/Controllers/**/*.php"],
+      persistence: ["database/migrations/**/*.php"],
+    },
+    operational: ["composer.json", "composer.lock", "bootstrap/app.php", "config/**/*.php"],
+  },
+];
+
 
 const translations = {
   en: {
@@ -150,6 +246,84 @@ const translations = {
         'Serve the repository over HTTP, for example with <code class="font-mono">python3 -m http.server 8000</code>, and open <code class="font-mono">http://localhost:8000/dashboard/</code>.',
       csvLoad: "Could not load the benchmark CSV files.",
     },
+    navDashboard: "Dashboard",
+    navAbout: "About the Study",
+    about: {
+      heroTitle: "What is SyntaxTax?",
+      heroBody:
+        "SyntaxTax is a controlled benchmark that measures the textual cost of equivalent web API implementations across 10 different stacks. The central question is not which framework is \"better\" — it is how much token context a language model must consume to understand or modify a complete, idiomatic codebase.",
+      researchQuestion:
+        "How many tokens does it take to implement the same API in 10 different web stacks?",
+      constraintsTitle: "Experimental constraints",
+      constraints: [
+        "All 10 stacks implement an identical domain and pass the same functional validator before being measured.",
+        "Tokenizer is fixed to cl100k_base (GPT-4 / GPT-3.5 family) with alphabetical stable ordering and pure_content_only strategy.",
+        "Vendor directories, test files, build artifacts, and virtual environments are always excluded.",
+        "Stacks are grouped into two methodological rounds: API-first microframeworks and opinionated frameworks.",
+        "The benchmark measures the textual result of the final implementation — not the generation cost.",
+      ],
+      domainTitle: "The domain: a mini order system",
+      domainBody:
+        "Every stack implements the same four entities and the same set of HTTP endpoints. This ensures that token count differences reflect the stack's own verbosity — not differences in scope.",
+      endpointsTitle: "Endpoints (V2 spec)",
+      endpoints: [
+        { method: "POST", path: "/users", desc: "Create user" },
+        { method: "GET",  path: "/users", desc: "List users" },
+        { method: "POST", path: "/products", desc: "Create product (price > 0)" },
+        { method: "GET",  path: "/products?min_price=&max_price=", desc: "List products with price filters" },
+        { method: "POST", path: "/orders", desc: "Create order with items" },
+        { method: "GET",  path: "/orders?status=&user_id=", desc: "List orders with filters" },
+        { method: "GET",  path: "/orders/:id", desc: "Get order detail" },
+        { method: "PATCH", path: "/orders/:id/status", desc: "Update status (with transition rules)" },
+      ],
+      entitiesTitle: "Entities",
+      entities: [
+        { name: "User", fields: "id, name, email (unique)" },
+        { name: "Product", fields: "id, name, price (> 0)" },
+        { name: "Order", fields: "id, user_id, status, total, item_count, created_at" },
+        { name: "OrderItem", fields: "id, order_id, product_id, product_name, quantity, unit_price" },
+      ],
+      stacksTitle: "The 10 stacks",
+      stacksBody:
+        "Five API-first microframeworks (Round A) and five opinionated frameworks (Round B). Stacks are only compared within their own round.",
+      apifirstLabel: "Round A — API-first / microframeworks",
+      opinionatedLabel: "Round B — Opinionated / structured frameworks",
+      metricsTitle: "How the metrics work",
+      metricsBody:
+        "The benchmark measures source code files in three views. Each view exposes a different lens on the same corpus.",
+      metrics: [
+        {
+          name: "Total tokens",
+          color: "ember",
+          desc: "All measured files combined — handwritten code plus operational extras. This is the full context cost of the stack.",
+        },
+        {
+          name: "Handwritten tokens",
+          color: "aqua",
+          desc: "Only the files implementing the application: domain models, API handlers, and persistence code. Excludes lockfiles and config.",
+        },
+        {
+          name: "Operational tokens",
+          color: "slateblue",
+          desc: "Lockfiles, package manifests, framework config. Represents ecosystem overhead rather than application logic.",
+        },
+        {
+          name: "Operational ratio",
+          color: "sand",
+          desc: "operational_tokens ÷ total_tokens. High values indicate stacks where ecosystem infrastructure dominates the corpus.",
+        },
+      ],
+      browserTitle: "File browser — what gets measured",
+      browserBody:
+        "Each stack entry shows the exact file patterns that contribute to each measurement category, as defined in benchmark_config.yaml. Click any stack to expand.",
+      categoryColors: {
+        domain: "bg-aqua/30 text-slateblue",
+        api: "bg-ember/15 text-ember",
+        persistence: "bg-slateblue/10 text-slateblue",
+        operational: "bg-sand border border-black/10 text-slateblue/70",
+      },
+      noDomainNote: "No domain layer — raw SQL / PDO without ORM abstraction",
+    },
   },
   "pt-BR": {
     htmlLang: "pt-BR",
@@ -294,6 +468,84 @@ const translations = {
         'Sirva o repositório por HTTP, por exemplo com <code class="font-mono">python3 -m http.server 8000</code>, e abra <code class="font-mono">http://localhost:8000/dashboard/</code>.',
       csvLoad: "Não foi possível carregar os CSVs do benchmark.",
     },
+    navDashboard: "Painel",
+    navAbout: "Sobre o Estudo",
+    about: {
+      heroTitle: "O que é SyntaxTax?",
+      heroBody:
+        "SyntaxTax é um benchmark controlado que mede o custo textual de implementações equivalentes de APIs web em 10 stacks diferentes. A questão central não é qual framework é \"melhor\" — é quanto contexto de tokens um modelo de linguagem precisa consumir para entender ou modificar uma base de código completa e idiomática.",
+      researchQuestion:
+        "Quantos tokens são necessários para implementar a mesma API em 10 stacks web diferentes?",
+      constraintsTitle: "Restrições experimentais",
+      constraints: [
+        "Todas as 10 stacks implementam o mesmo domínio e passam pelo mesmo validador funcional antes de serem medidas.",
+        "O tokenizer é fixo em cl100k_base (família GPT-4 / GPT-3.5), com ordenação alfabética estável e estratégia pure_content_only.",
+        "Diretórios vendor, arquivos de teste, artefatos de build e ambientes virtuais são sempre excluídos.",
+        "As stacks são agrupadas em duas rodadas metodológicas: microframeworks API-first e frameworks opinionated.",
+        "O benchmark mede o resultado textual da implementação final — não o custo de geração.",
+      ],
+      domainTitle: "O domínio: mini sistema de pedidos",
+      domainBody:
+        "Cada stack implementa as mesmas quatro entidades e o mesmo conjunto de endpoints HTTP. Isso garante que as diferenças de contagem de tokens reflitam a verbosidade da stack — não diferenças de escopo.",
+      endpointsTitle: "Endpoints (spec V2)",
+      endpoints: [
+        { method: "POST", path: "/users", desc: "Criar usuário" },
+        { method: "GET",  path: "/users", desc: "Listar usuários" },
+        { method: "POST", path: "/products", desc: "Criar produto (price > 0)" },
+        { method: "GET",  path: "/products?min_price=&max_price=", desc: "Listar produtos com filtros de preço" },
+        { method: "POST", path: "/orders", desc: "Criar pedido com itens" },
+        { method: "GET",  path: "/orders?status=&user_id=", desc: "Listar pedidos com filtros" },
+        { method: "GET",  path: "/orders/:id", desc: "Detalhar pedido" },
+        { method: "PATCH", path: "/orders/:id/status", desc: "Atualizar status (com regras de transição)" },
+      ],
+      entitiesTitle: "Entidades",
+      entities: [
+        { name: "User", fields: "id, name, email (único)" },
+        { name: "Product", fields: "id, name, price (> 0)" },
+        { name: "Order", fields: "id, user_id, status, total, item_count, created_at" },
+        { name: "OrderItem", fields: "id, order_id, product_id, product_name, quantity, unit_price" },
+      ],
+      stacksTitle: "As 10 stacks",
+      stacksBody:
+        "Cinco microframeworks API-first (Rodada A) e cinco frameworks opinionated (Rodada B). As stacks são comparadas apenas dentro de sua própria rodada.",
+      apifirstLabel: "Rodada A — API-first / microframeworks",
+      opinionatedLabel: "Rodada B — Opinionated / frameworks estruturados",
+      metricsTitle: "Como as métricas funcionam",
+      metricsBody:
+        "O benchmark mede os arquivos fonte em três views. Cada view expõe uma lente diferente sobre o mesmo corpus.",
+      metrics: [
+        {
+          name: "Tokens totais",
+          color: "ember",
+          desc: "Todos os arquivos medidos juntos — código handwritten mais extras operacionais. Este é o custo total de contexto da stack.",
+        },
+        {
+          name: "Tokens handwritten",
+          color: "aqua",
+          desc: "Apenas os arquivos que implementam a aplicação: modelos de domínio, handlers de API e código de persistência. Exclui lockfiles e configs.",
+        },
+        {
+          name: "Tokens operacionais",
+          color: "slateblue",
+          desc: "Lockfiles, manifests de pacotes, configuração de framework. Representa o overhead do ecossistema, não a lógica da aplicação.",
+        },
+        {
+          name: "Razão operacional",
+          color: "sand",
+          desc: "operational_tokens ÷ total_tokens. Valores altos indicam stacks onde a infraestrutura do ecossistema domina o corpus.",
+        },
+      ],
+      browserTitle: "Browser de arquivos — o que é medido",
+      browserBody:
+        "Cada entrada de stack mostra os padrões de arquivo exatos que contribuem para cada categoria de medição, conforme definido em benchmark_config.yaml. Clique em qualquer stack para expandir.",
+      categoryColors: {
+        domain: "bg-aqua/30 text-slateblue",
+        api: "bg-ember/15 text-ember",
+        persistence: "bg-slateblue/10 text-slateblue",
+        operational: "bg-sand border border-black/10 text-slateblue/70",
+      },
+      noDomainNote: "Sem camada de domínio — SQL puro / PDO sem abstração ORM",
+    },
   },
 };
 
@@ -386,8 +638,238 @@ function renderList(id, values) {
   node.innerHTML = values.map((value) => `<li>${value}</li>`).join("");
 }
 
-function renderStaticCopy() {
+// ── About page ──────────────────────────────────────────────────────────────
+
+const METHOD_COLORS = {
+  GET:    "bg-aqua/40 text-slateblue",
+  POST:   "bg-ember/20 text-ember",
+  PATCH:  "bg-slateblue/15 text-slateblue",
+  PUT:    "bg-slateblue/15 text-slateblue",
+  DELETE: "bg-red-100 text-red-700",
+};
+
+const METRIC_ACCENT = {
+  ember:    { bg: "bg-ember/15", text: "text-ember",    dot: "bg-ember" },
+  aqua:     { bg: "bg-aqua/30",  text: "text-slateblue", dot: "bg-emerald-400" },
+  slateblue:{ bg: "bg-slateblue/10", text: "text-slateblue", dot: "bg-slateblue" },
+  sand:     { bg: "bg-sand border border-black/10", text: "text-slateblue/80", dot: "bg-black/20" },
+};
+
+function renderAboutPage() {
   const copy = getCopy();
+  const a = copy.about;
+
+  // Nav labels
+  setText("nav-dashboard-label", copy.navDashboard);
+  setText("nav-about-label", copy.navAbout);
+
+  // Hero
+  setText("about-hero-title", a.heroTitle);
+  setText("about-hero-body", a.heroBody);
+  setText("about-research-question", `"${a.researchQuestion}"`);
+
+  // Constraints
+  setText("about-constraints-title", a.constraintsTitle);
+  document.getElementById("about-constraints-list").innerHTML = a.constraints
+    .map(
+      (c) => `
+        <div class="flex items-start gap-3">
+          <div class="mt-1 h-5 w-5 shrink-0 flex items-center justify-center rounded-full bg-aqua/30">
+            <svg class="h-3 w-3 text-slateblue" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="text-sm leading-6 text-white/80">${c}</p>
+        </div>`
+    )
+    .join("");
+
+  // Domain
+  setText("about-domain-title", a.domainTitle);
+  setText("about-domain-body", a.domainBody);
+  setText("about-endpoints-title", a.endpointsTitle);
+  document.getElementById("about-endpoints-list").innerHTML = a.endpoints
+    .map(
+      (ep) => `
+        <div class="flex items-start gap-3 rounded-2xl bg-sand px-4 py-2.5">
+          <span class="mt-0.5 inline-flex shrink-0 items-center rounded-xl px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${METHOD_COLORS[ep.method] ?? "bg-sand text-ink"}">${ep.method}</span>
+          <div class="min-w-0 flex-1">
+            <code class="break-all font-mono text-xs text-slateblue">${ep.path}</code>
+            <span class="ml-2 text-xs text-slateblue/60">— ${ep.desc}</span>
+          </div>
+        </div>`
+    )
+    .join("");
+
+  setText("about-entities-title", a.entitiesTitle);
+  document.getElementById("about-entities-list").innerHTML = a.entities
+    .map(
+      (e) => `
+        <div class="rounded-2xl border border-black/5 bg-sand px-4 py-3">
+          <div class="font-semibold text-sm">${e.name}</div>
+          <div class="mt-1 font-mono text-xs text-slateblue/65 break-all">${e.fields}</div>
+        </div>`
+    )
+    .join("");
+
+  // Stacks
+  setText("about-stacks-title", a.stacksTitle);
+  setText("about-stacks-body", a.stacksBody);
+  setText("about-apifirst-label", a.apifirstLabel);
+  setText("about-opinionated-label", a.opinionatedLabel);
+
+  const apifirstEl = document.getElementById("about-stacks-apifirst");
+  const opinionatedEl = document.getElementById("about-stacks-opinionated");
+  apifirstEl.innerHTML = "";
+  opinionatedEl.innerHTML = "";
+
+  STACKS_MANIFEST.forEach((stack) => {
+    const card = document.createElement("article");
+    card.className = "rounded-[1.5rem] border border-black/5 bg-white p-5 shadow-panel";
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-2 flex-wrap">
+        <h3 class="text-base font-bold capitalize">${stack.framework}</h3>
+        <span class="inline-flex rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${stack.category === "api_first" ? "bg-aqua/30 text-slateblue" : "bg-ember/15 text-ember"}">${stack.category === "api_first" ? "API-first" : "Opinionated"}</span>
+      </div>
+      <div class="mt-3 space-y-1 text-xs text-slateblue/70">
+        <div><span class="font-semibold">Lang:</span> ${stack.language}</div>
+        <div><span class="font-semibold">ORM:</span> ${stack.orm}</div>
+      </div>
+    `;
+    (stack.category === "api_first" ? apifirstEl : opinionatedEl).append(card);
+  });
+
+  // Metrics
+  setText("about-metrics-title", a.metricsTitle);
+  setText("about-metrics-body", a.metricsBody);
+  document.getElementById("about-metrics-cards").innerHTML = a.metrics
+    .map((m) => {
+      const accent = METRIC_ACCENT[m.color] ?? METRIC_ACCENT.sand;
+      return `
+        <article class="rounded-[1.5rem] border border-black/5 bg-white p-6 shadow-panel">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="h-2.5 w-2.5 rounded-full shrink-0 ${accent.dot}"></span>
+            <h3 class="font-semibold text-sm ${accent.text}">${m.name}</h3>
+          </div>
+          <p class="text-sm leading-7 text-slateblue/80">${m.desc}</p>
+        </article>`;
+    })
+    .join("");
+
+  // File browser
+  setText("about-browser-title", a.browserTitle);
+  setText("about-browser-body", a.browserBody);
+
+  renderFileBrowser("about-browser-group-apifirst", "api_first", a);
+  renderFileBrowser("about-browser-group-opinionated", "opinionated", a);
+}
+
+function renderFileBrowser(containerId, category, a) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+
+  const stacks = STACKS_MANIFEST.filter((s) => s.category === category);
+  const groupLabel = document.createElement("div");
+  groupLabel.className = "px-4 pt-3 pb-1 font-mono text-[10px] uppercase tracking-[0.22em] text-slateblue/50";
+  groupLabel.textContent = category === "api_first" ? a.apifirstLabel : a.opinionatedLabel;
+  container.append(groupLabel);
+
+  stacks.forEach((stack, index) => {
+    const isLast = index === stacks.length - 1;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "border-t border-black/5";
+
+    // Toggle button
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "flex w-full items-center justify-between gap-4 rounded-2xl px-4 py-3 text-left transition hover:bg-sand/60";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = `
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl font-mono text-[10px] font-semibold uppercase ${stack.category === "api_first" ? "bg-aqua/30 text-slateblue" : "bg-ember/15 text-ember"}">${stack.framework.slice(0, 2)}</span>
+        <div class="min-w-0">
+          <span class="font-semibold text-sm">${stack.framework}</span>
+          <span class="ml-2 font-mono text-xs text-slateblue/50">${stack.language} · ${stack.orm}</span>
+        </div>
+      </div>
+      <svg class="chevron h-4 w-4 shrink-0 text-slateblue/40 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    `;
+
+    // Content panel
+    const panel = document.createElement("div");
+    panel.className = "hidden px-4 pb-4";
+    panel.innerHTML = buildFilePanelHtml(stack, a);
+
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      panel.classList.toggle("hidden", expanded);
+      toggle.querySelector(".chevron").classList.toggle("rotate-180", !expanded);
+    });
+
+    wrapper.append(toggle, panel);
+    container.append(wrapper);
+  });
+}
+
+function buildFilePanelHtml(stack, a) {
+  const colors = a.categoryColors;
+
+  function categoryBlock(label, colorClass, patterns, emptyNote) {
+    if (patterns.length === 0 && !emptyNote) return "";
+    const items = patterns.length === 0
+      ? `<span class="italic text-slateblue/45">${emptyNote}</span>`
+      : patterns.map((p) => `<code class="block font-mono text-xs text-slateblue/80 break-all">${p}</code>`).join("");
+    return `
+      <div>
+        <span class="inline-flex mb-2 rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider font-semibold ${colorClass}">${label}</span>
+        <div class="space-y-1 rounded-2xl bg-sand/60 px-4 py-3">${items}</div>
+      </div>`;
+  }
+
+  return `
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      ${categoryBlock("domain", colors.domain, stack.handwritten.domain, a.noDomainNote)}
+      ${categoryBlock("api", colors.api, stack.handwritten.api, "")}
+      ${categoryBlock("persistence", colors.persistence, stack.handwritten.persistence, "")}
+      ${categoryBlock("operational", colors.operational, stack.operational, "")}
+    </div>`;
+}
+
+// ── Tab management ───────────────────────────────────────────────────────────
+
+function applyTabState(tab) {
+  const isDashboard = tab === "dashboard";
+  document.getElementById("view-dashboard").classList.toggle("hidden", !isDashboard);
+  document.getElementById("view-about").classList.toggle("hidden", isDashboard);
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    const active = btn.dataset.tab === tab;
+    btn.classList.toggle("bg-slateblue", active);
+    btn.classList.toggle("text-white", active);
+    btn.classList.toggle("shadow-sm", active);
+    btn.classList.toggle("text-slateblue/70", !active);
+    btn.classList.toggle("hover:text-slateblue", !active);
+  });
+}
+
+function initTabs() {
+  setText("nav-dashboard-label", getCopy().navDashboard);
+  setText("nav-about-label", getCopy().navAbout);
+
+  const stored = localStorage.getItem(TAB_STORAGE_KEY) || "dashboard";
+  applyTabState(stored);
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      localStorage.setItem(TAB_STORAGE_KEY, tab);
+      applyTabState(tab);
+    });
+  });
+}
+
+function renderStaticCopy() {  const copy = getCopy();
   document.documentElement.lang = copy.htmlLang;
   setText("hero-title", copy.heroTitle);
   setText("hero-body", copy.heroBody);
@@ -438,6 +920,9 @@ function setupLocaleSwitcher() {
       } else {
         renderStaticCopy();
       }
+      renderAboutPage();
+      setText("nav-dashboard-label", getCopy().navDashboard);
+      setText("nav-about-label", getCopy().navAbout);
       renderLocaleState();
     });
   });
@@ -801,6 +1286,8 @@ function renderDashboard(data) {
 async function boot() {
   currentLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || DEFAULT_LOCALE;
   renderStaticCopy();
+  renderAboutPage();
+  initTabs();
   setupLocaleSwitcher();
 
   try {
