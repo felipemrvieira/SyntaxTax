@@ -268,7 +268,7 @@ const translations = {
       twitterLabel: "\uD835\uDD4F / Twitter",
       linkedinLabel: "LinkedIn",
       whatsappLabel: "WhatsApp",
-      note: "Tip: download the image and attach it manually on platforms that don't support direct image uploads.",
+      note: "Platform buttons download the image first, then open the platform \u2014 attach the image when posting.",
       shareText: (title, framework, value) =>
         `\uD83C\uDFC6 ${framework} leads the \u201c${title}\u201d ranking with ${value} \u2014 measured by the SyntaxTax Benchmark. How does your stack compare?`,
     },
@@ -561,7 +561,7 @@ const translations = {
       twitterLabel: "\uD835\uDD4F / Twitter",
       linkedinLabel: "LinkedIn",
       whatsappLabel: "WhatsApp",
-      note: "Dica: baixe a imagem e anexe manualmente em plataformas que n\u00e3o suportam upload direto de imagem.",
+      note: "Os bot\u00f5es de plataforma baixam a imagem e abrem a rede \u2014 anexe a imagem ao publicar.",
       shareText: (title, framework, value) =>
         `\uD83C\uDFC6 ${framework} lidera o ranking \u201c${title}\u201d com ${value} \u2014 medido pelo SyntaxTax Benchmark. Como est\u00e1 a sua stack?`,
     },
@@ -1269,40 +1269,100 @@ function initShareModal() {
   });
 }
 
+function buildShareCard(cardTitle, ranked, key, formatter) {
+  const medals = ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"];
+  const top = ranked.slice(0, 5);
+
+  const card = document.createElement("div");
+  card.style.cssText = [
+    "position:absolute",
+    "left:-9999px",
+    "top:0",
+    "width:640px",
+    "background:#0e1a1f",
+    "border-radius:20px",
+    "overflow:hidden",
+    "font-family:'Space Grotesk',system-ui,sans-serif",
+    "color:#f7f3ea",
+  ].join(";");
+
+  const header = document.createElement("div");
+  header.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:20px 28px 16px;border-bottom:1px solid rgba(167,243,208,0.15);";
+  header.innerHTML = [
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#a7f3d0;">SyntaxTax Benchmark</span>`,
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(247,243,234,0.4);">token cost study</span>`,
+  ].join("");
+
+  const titleEl = document.createElement("div");
+  titleEl.style.cssText = "padding:24px 28px 16px;";
+  titleEl.innerHTML = `<h2 style="font-size:22px;font-weight:700;color:#f7f3ea;margin:0;line-height:1.3;">${cardTitle}</h2>`;
+
+  const rowsEl = document.createElement("div");
+  rowsEl.style.cssText = "padding:0 28px 24px;display:flex;flex-direction:column;gap:10px;";
+
+  top.forEach((entry, i) => {
+    const medal = medals[i] ?? `${i + 1}.`;
+    const value = formatter(entry[key]);
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 16px;";
+    row.innerHTML = [
+      `<div style="display:flex;align-items:center;gap:12px;">`,
+      `<span style="font-size:18px;">${medal}</span>`,
+      `<span style="font-size:15px;font-weight:600;color:#f7f3ea;">${entry.framework}</span>`,
+      `<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(247,243,234,0.5);text-transform:uppercase;">${entry.language}</span>`,
+      `</div>`,
+      `<span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:#a7f3d0;">${value}</span>`,
+    ].join("");
+    rowsEl.append(row);
+  });
+
+  const footer = document.createElement("div");
+  footer.style.cssText = "padding:14px 28px;border-top:1px solid rgba(167,243,208,0.15);display:flex;align-items:center;justify-content:space-between;background:rgba(167,243,208,0.04);";
+  footer.innerHTML = [
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#a7f3d0;letter-spacing:0.05em;">↗ github.com/felipemrvieira/SyntaxTax</span>`,
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(247,243,234,0.35);">${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>`,
+  ].join("");
+
+  card.append(header, titleEl, rowsEl, footer);
+  document.body.append(card);
+  return card;
+}
+
 async function captureAndShare(panel, title, ranked, key, formatter) {
   const btn = panel.querySelector(".ranking-share-btn");
   const prevHTML = btn.innerHTML;
 
-  // Loading spinner
   btn.innerHTML = `<svg class="h-3.5 w-3.5 animate-spin text-slateblue/60" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>`;
   btn.disabled = true;
-  btn.style.visibility = "hidden"; // hide from capture
+
+  const shareCard = buildShareCard(title, ranked, key, formatter);
 
   try {
-    const canvas = await html2canvas(panel, {
-      backgroundColor: "#ffffff",
+    const canvas = await html2canvas(shareCard, {
+      backgroundColor: null,
       scale: 2,
       useCORS: true,
       logging: false,
     });
 
-    btn.style.visibility = "";
+    shareCard.remove();
     btn.innerHTML = prevHTML;
     btn.disabled = false;
 
     canvas.toBlob(
-      (blob) => openShareModal(blob, title, ranked[0], key, formatter),
+      (blob) => openShareModal(blob, title, ranked, key, formatter),
       "image/png"
     );
   } catch (err) {
-    btn.style.visibility = "";
+    shareCard.remove();
     btn.innerHTML = prevHTML;
     btn.disabled = false;
     console.error("Capture failed:", err);
   }
 }
 
-function openShareModal(blob, cardTitle, topEntry, key, formatter) {
+function openShareModal(blob, cardTitle, ranked, key, formatter) {
+  const topEntry = ranked[0];
   const sm = getCopy().shareModal;
   const modal = document.getElementById("share-modal");
 
@@ -1313,9 +1373,19 @@ function openShareModal(blob, cardTitle, topEntry, key, formatter) {
   const actionsEl = document.getElementById("share-modal-actions");
   actionsEl.innerHTML = "";
 
-  const pageUrl = window.location.href.split("?")[0];
+  const pageUrl = "https://github.com/felipemrvieira/SyntaxTax";
   const shareText = sm.shareText(cardTitle, topEntry.framework, formatter(topEntry[key]));
   const file = new File([blob], `syntaxtax-${key}.png`, { type: "image/png" });
+
+  // Rich text for platforms (top-3 with values + link)
+  const medals = ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"];
+  const richPlatformText = [
+    `\uD83C\uDFC6 ${cardTitle} \u2014 SyntaxTax Benchmark`,
+    "",
+    ...ranked.slice(0, 3).map((e, i) => `${medals[i]} ${e.framework} (${e.language}) \u2192 ${formatter(e[key])}`),
+    "",
+    pageUrl,
+  ].join("\n");
 
   // ── Primary row: Download | Copy | Native share ──
   const primaryRow = document.createElement("div");
@@ -1356,26 +1426,24 @@ function openShareModal(blob, cardTitle, topEntry, key, formatter) {
   const platformRow = document.createElement("div");
   platformRow.className = "grid grid-cols-3 gap-2";
 
-  const tweetText = `${shareText}\n${pageUrl}`;
+  function dlAndOpen(url) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    a.click();
+    setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 400);
+  }
+
   platformRow.append(
-    makeModalBtn(sm.twitterLabel, "bg-black text-white hover:bg-black/80 text-xs font-bold py-2.5", () => {
-      window.open(
-        `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`,
-        "_blank", "noopener,noreferrer"
-      );
-    }),
-    makeModalBtn(sm.linkedinLabel, "bg-[#0A66C2] text-white hover:opacity-90 text-xs font-bold py-2.5", () => {
-      window.open(
-        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}&summary=${encodeURIComponent(shareText)}`,
-        "_blank", "noopener,noreferrer"
-      );
-    }),
-    makeModalBtn(sm.whatsappLabel, "bg-[#25D366] text-white hover:opacity-90 text-xs font-bold py-2.5", () => {
-      window.open(
-        `https://api.whatsapp.com/send?text=${encodeURIComponent(tweetText)}`,
-        "_blank", "noopener,noreferrer"
-      );
-    })
+    makeModalBtn(sm.twitterLabel, "bg-black text-white hover:bg-black/80 text-xs font-bold py-2.5", () =>
+      dlAndOpen(`https://twitter.com/intent/tweet?text=${encodeURIComponent(richPlatformText)}`)
+    ),
+    makeModalBtn(sm.linkedinLabel, "bg-[#0A66C2] text-white hover:opacity-90 text-xs font-bold py-2.5", () =>
+      dlAndOpen(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}&summary=${encodeURIComponent(richPlatformText)}`)
+    ),
+    makeModalBtn(sm.whatsappLabel, "bg-[#25D366] text-white hover:opacity-90 text-xs font-bold py-2.5", () =>
+      dlAndOpen(`https://api.whatsapp.com/send?text=${encodeURIComponent(richPlatformText)}`)
+    )
   );
 
   actionsEl.append(platformRow);
