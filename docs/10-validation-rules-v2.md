@@ -1,8 +1,8 @@
-# Validation rules V2
+# Validation rules
 
 ## Objetivo
 
-Este documento define como a camada funcional da V2 deve ser homologada.
+Este documento define como a especificação funcional atual deve ser homologada.
 
 Ele complementa:
 
@@ -13,16 +13,13 @@ Ele complementa:
 
 ## Regra de homologação
 
-Nenhuma stack pode ser considerada pronta para a V2 antes de:
-
-- continuar passando integralmente a validação da V1
-- passar integralmente a validação adicional da V2
+Nenhuma stack pode ser considerada pronta antes de passar integralmente no validador funcional atual.
 
 ---
 
 ## Princípio
 
-O validador da V2 deve verificar:
+O validador funcional atual deve verificar:
 
 - equivalência funcional
 - estrutura mínima dos payloads novos
@@ -32,9 +29,9 @@ O validador da V2 deve verificar:
 
 ---
 
-## Regras HTTP congeladas para a V2
+## Regras HTTP congeladas
 
-Para remover ambiguidade entre stacks, a V2 passa a exigir os seguintes códigos:
+Para remover ambiguidade entre stacks, o benchmark passa a exigir os seguintes códigos:
 
 ### `409 Conflict`
 
@@ -64,11 +61,7 @@ Deve continuar sendo usado para:
 
 ---
 
-## O validador V2 deve verificar
-
-### Continuidade da V1
-
-Tudo o que já existe em `docs/04-validation-rules.md` continua obrigatório.
+## O validador deve verificar
 
 ### Users
 
@@ -106,7 +99,7 @@ Tudo o que já existe em `docs/04-validation-rules.md` continua obrigatório.
 
 ## Dados mínimos que o validador deve preparar
 
-O validador V2 deve criar ao menos:
+O validador deve criar ao menos:
 
 - 2 usuários
 - 3 produtos com preços diferentes
@@ -158,7 +151,7 @@ O validador deve confirmar que:
 
 ---
 
-## Estrutura mínima dos payloads na V2
+## Estrutura mínima dos payloads
 
 ### Order detail
 
@@ -205,9 +198,9 @@ Isso evita ambiguidade nos asserts de filtros.
 
 ## Regra final
 
-Se qualquer teste adicional da V2 falhar:
+Se qualquer teste falhar:
 
-- a stack não está pronta para medição da V2
+- a stack não está pronta para medição
 - a implementação deve ser corrigida antes de qualquer nova coleta
 
-Este documento congela a semântica funcional da expansão antes da implementação.
+Este documento congela a semântica funcional atual antes da medição.

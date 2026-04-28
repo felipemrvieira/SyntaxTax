@@ -1,24 +1,21 @@
-# Benchmark Spec V2
+# Benchmark Spec
 
 ## Objetivo
 
-Este documento define uma expansão controlada do benchmark atual.
+Este documento define a especificação funcional atual do benchmark.
 
 O objetivo é aproximar as stacks de uma API pequena mais realista, sem descaracterizar a metodologia e sem introduzir escopo indevido.
 
-Este documento NÃO substitui `docs/01-benchmark-spec.md`.
-
-Ele adiciona uma segunda camada funcional sobre a spec atual.
+Este documento deve ser tratado como a referência funcional atual do benchmark, em conjunto com `docs/01-benchmark-spec.md`.
 
 ---
 
-## Regra de adoção
+## Regra de conformidade
 
-Uma stack só está em conformidade com a V2 quando:
+Uma stack só está em conformidade quando:
 
-- continua passando integralmente a spec atual
-- implementa todos os requisitos adicionais deste documento
-- passa por um validador funcional compatível com a V2
+- implementa todos os requisitos deste documento
+- passa integralmente no validador funcional atual
 
 ---
 
@@ -37,13 +34,13 @@ Continuam proibidos:
 - upload de arquivos
 - integrações externas
 
-Esta expansão deve aumentar realismo funcional, não alterar a natureza do benchmark.
+Esta especificação deve aumentar realismo funcional, não alterar a natureza do benchmark.
 
 ---
 
-## Novas regras obrigatórias
+## Regras obrigatórias
 
-Além das regras da V1, todas as stacks devem implementar:
+Todas as stacks devem implementar:
 
 - filtro de listagem de pedidos por `status`
 - filtro de listagem de pedidos por `user_id`
@@ -164,7 +161,7 @@ O formato base continua livre para campos extras, mas cada item deve conter no m
 
 ### Pedido detalhado
 
-Além dos campos já obrigatórios na V1, o pedido detalhado deve conter:
+O pedido detalhado deve conter:
 
 - `item_count`
 
@@ -230,7 +227,7 @@ Os códigos HTTP específicos podem variar entre `400`, `409` e `422`, desde que
 
 ## Critério metodológico
 
-Esta expansão foi desenhada para:
+Esta especificação foi desenhada para:
 
 - aumentar o corpus funcional sem introduzir features externas ao domínio
 - exigir mais leitura, modelagem e validação
@@ -239,9 +236,9 @@ Esta expansão foi desenhada para:
 
 ---
 
-## O que esta V2 evita deliberadamente
+## O que esta spec evita deliberadamente
 
-Esta V2 NÃO adiciona:
+Esta spec NÃO adiciona:
 
 - autenticação
 - paginação

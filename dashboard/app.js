@@ -318,7 +318,7 @@ const translations = {
       domainTitle: "The domain: a mini order system",
       domainBody:
         "Every stack implements the same four entities and the same set of HTTP endpoints. This ensures that token count differences reflect the stack's own verbosity — not differences in scope.",
-      endpointsTitle: "Endpoints (V2 spec)",
+      endpointsTitle: "Endpoints",
       endpoints: [
         { method: "POST", path: "/users", desc: "Create user" },
         { method: "GET",  path: "/users", desc: "List users" },
@@ -611,7 +611,7 @@ const translations = {
       domainTitle: "O domínio: mini sistema de pedidos",
       domainBody:
         "Cada stack implementa as mesmas quatro entidades e o mesmo conjunto de endpoints HTTP. Isso garante que as diferenças de contagem de tokens reflitam a verbosidade da stack — não diferenças de escopo.",
-      endpointsTitle: "Endpoints (spec V2)",
+      endpointsTitle: "Endpoints",
       endpoints: [
         { method: "POST", path: "/users", desc: "Criar usuário" },
         { method: "GET",  path: "/users", desc: "Listar usuários" },
