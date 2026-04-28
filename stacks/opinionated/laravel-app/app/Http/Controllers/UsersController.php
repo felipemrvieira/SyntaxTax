@@ -11,6 +11,10 @@ class UsersController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        if ($request->filled('email') && User::query()->where('email', $request->input('email'))->exists()) {
+            return response()->json(['detail' => 'Email already exists'], 409);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users,email'],

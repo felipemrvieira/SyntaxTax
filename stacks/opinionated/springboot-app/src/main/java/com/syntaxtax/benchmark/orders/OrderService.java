@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OrderService {
+    private static final Set<String> VALID_STATUSES = Set.of("created", "paid", "shipped", "cancelled");
+    private static final Map<String, Set<String>> ALLOWED_STATUS_TRANSITIONS = Map.of(
+        "created", Set.of("paid", "cancelled"),
+        "paid", Set.of("shipped", "cancelled"),
+        "shipped", Set.of(),
+        "cancelled", Set.of()
+    );
+
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -81,8 +90,26 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> list() {
+    public List<OrderResponse> list(String status, String userId) {
+        Long parsedUserId = null;
+        if (status != null && !VALID_STATUSES.contains(status)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Query parameter 'status' is invalid");
+        }
+        if (userId != null) {
+            try {
+                parsedUserId = Long.valueOf(userId);
+            } catch (NumberFormatException exception) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Query parameter 'user_id' is invalid");
+            }
+            if (parsedUserId <= 0 || !parsedUserId.toString().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Query parameter 'user_id' is invalid");
+            }
+        }
+
+        Long finalUserId = parsedUserId;
         return orderRepository.findAllByOrderByIdAsc().stream()
+            .filter(order -> status == null || order.getStatus().equals(status))
+            .filter(order -> finalUserId == null || order.getUser().getId().equals(finalUserId))
             .map(this::toResponse)
             .toList();
     }
@@ -98,6 +125,12 @@ public class OrderService {
     public OrderResponse updateStatus(Long id, UpdateOrderStatusRequest request) {
         Order order = orderRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        if (!VALID_STATUSES.contains(request.status())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Field 'status' is invalid");
+        }
+        if (!ALLOWED_STATUS_TRANSITIONS.getOrDefault(order.getStatus(), Set.of()).contains(request.status())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid order status transition");
+        }
         order.setStatus(request.status());
         return toResponse(order);
     }
@@ -109,10 +142,12 @@ public class OrderService {
             order.getItems().stream()
                 .map(item -> new OrderResponse.OrderItemResponse(
                     item.getProduct().getId(),
+                    item.getProduct().getName(),
                     item.getQuantity(),
                     item.getUnitPrice()
                 ))
                 .toList(),
+            order.getItems().size(),
             order.getTotal(),
             order.getStatus(),
             order.getCreatedAt().toString()

@@ -26,19 +26,24 @@ class OrderUserSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ["product_id", "quantity", "unit_price"]
+        fields = ["product_id", "product_name", "quantity", "unit_price"]
 
 
 class OrderSerializer(serializers.ModelSerializer):
     user = OrderUserSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
+    item_count = serializers.SerializerMethodField()
+
+    def get_item_count(self, obj):
+        return obj.items.count()
 
     class Meta:
         model = Order
-        fields = ["id", "user", "items", "total", "status", "created_at"]
+        fields = ["id", "user", "items", "item_count", "total", "status", "created_at"]
 
 
 class OrderCreateItemSerializer(serializers.Serializer):
@@ -70,8 +75,8 @@ class OrderCreateSerializer(serializers.Serializer):
                     unit_price=item["product"].price,
                 )
 
-        return Order.objects.select_related("user").prefetch_related("items").get(pk=order.pk)
+        return Order.objects.select_related("user").prefetch_related("items__product").get(pk=order.pk)
 
 
 class OrderStatusSerializer(serializers.Serializer):
-    status = serializers.CharField()
+    status = serializers.ChoiceField(choices=["created", "paid", "shipped", "cancelled"])

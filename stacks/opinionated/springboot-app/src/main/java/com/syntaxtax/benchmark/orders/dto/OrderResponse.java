@@ -9,6 +9,8 @@ public record OrderResponse(
     Long id,
     UserSummary user,
     List<OrderItemResponse> items,
+    @JsonProperty("item_count")
+    int itemCount,
     BigDecimal total,
     String status,
     @JsonProperty("created_at")
@@ -23,6 +25,8 @@ public record OrderResponse(
     public record OrderItemResponse(
         @JsonProperty("product_id")
         Long productId,
+        @JsonProperty("product_name")
+        String productName,
         Integer quantity,
         @JsonProperty("unit_price")
         BigDecimal unitPrice

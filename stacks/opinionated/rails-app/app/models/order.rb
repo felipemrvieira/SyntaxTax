@@ -41,10 +41,12 @@ class Order < ApplicationRecord
       items: order_items.sort_by(&:id).map do |item|
         {
           product_id: item.product_id,
+          product_name: item.product.name,
           quantity: item.quantity,
           unit_price: item.unit_price
         }
       end,
+      item_count: order_items.size,
       total: total,
       status: status,
       created_at: created_at.utc.iso8601

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
@@ -13,8 +13,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query('min_price') minPrice?: string, @Query('max_price') maxPrice?: string) {
+    return this.productsService.findAll(minPrice, maxPrice);
   }
 
   @Get(':id')

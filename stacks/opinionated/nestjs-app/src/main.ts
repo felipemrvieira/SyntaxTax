@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { ValidationPipe } from '@nestjs/common';
+import { UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
@@ -12,6 +12,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      exceptionFactory: () => new UnprocessableEntityException({ detail: 'Validation failed' }),
     }),
   );
 

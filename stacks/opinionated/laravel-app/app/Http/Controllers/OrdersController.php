@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Validator;
 
 class OrdersController extends Controller
 {
+    private const VALID_STATUSES = ['created', 'paid', 'shipped', 'cancelled'];
+    private const ALLOWED_STATUS_TRANSITIONS = [
+        'created' => ['paid', 'cancelled'],
+        'paid' => ['shipped', 'cancelled'],
+        'shipped' => [],
+        'cancelled' => [],
+    ];
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -69,12 +77,27 @@ class OrdersController extends Controller
         return response()->json($this->serializeOrder($order), 201);
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $orders = Order::query()
-            ->with(['user:id,name', 'items.product:id'])
-            ->orderBy('id')
-            ->get();
+        $query = Order::query()
+            ->with(['user:id,name', 'items.product:id,name'])
+            ->orderBy('id');
+
+        if ($request->has('status')) {
+            if (! in_array($request->input('status'), self::VALID_STATUSES, true)) {
+                return response()->json(['detail' => "Query parameter 'status' is invalid"], 422);
+            }
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->has('user_id')) {
+            if (! ctype_digit((string) $request->input('user_id')) || (int) $request->input('user_id') <= 0) {
+                return response()->json(['detail' => "Query parameter 'user_id' is invalid"], 422);
+            }
+            $query->where('user_id', (int) $request->input('user_id'));
+        }
+
+        $orders = $query->get();
 
         return response()->json($orders->map(fn (Order $order) => $this->serializeOrder($order)));
     }
@@ -106,8 +129,16 @@ class OrdersController extends Controller
             return response()->json(['detail' => 'Order not found'], 404);
         }
 
+        $nextStatus = $validator->validated()['status'];
+        if (! in_array($nextStatus, self::VALID_STATUSES, true)) {
+            return response()->json(['detail' => 'Field status is invalid'], 422);
+        }
+        if (! in_array($nextStatus, self::ALLOWED_STATUS_TRANSITIONS[$order->status] ?? [], true)) {
+            return response()->json(['detail' => 'Invalid order status transition'], 409);
+        }
+
         $order->update([
-            'status' => $validator->validated()['status'],
+            'status' => $nextStatus,
         ]);
 
         return response()->json($this->serializeOrder($this->findDetailedOrder($order->id)));
@@ -116,7 +147,7 @@ class OrdersController extends Controller
     private function findDetailedOrder(int $id): ?Order
     {
         return Order::query()
-            ->with(['user:id,name', 'items.product:id'])
+            ->with(['user:id,name', 'items.product:id,name'])
             ->find($id);
     }
 
@@ -132,11 +163,13 @@ class OrdersController extends Controller
                 ->sortBy('id')
                 ->map(fn (OrderItem $item) => [
                     'product_id' => $item->product_id,
+                    'product_name' => $item->product->name,
                     'quantity' => $item->quantity,
                     'unit_price' => (float) $item->unit_price,
                 ])
                 ->values()
                 ->all(),
+            'item_count' => $order->items->count(),
             'total' => (float) $order->total,
             'status' => $order->status,
             'created_at' => $order->created_at->toISOString(),

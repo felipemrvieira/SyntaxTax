@@ -1,4 +1,12 @@
 class OrdersController < ApplicationController
+  VALID_ORDER_STATUSES = %w[created paid shipped cancelled].freeze
+  ALLOWED_STATUS_TRANSITIONS = {
+    "created" => %w[paid cancelled],
+    "paid" => %w[shipped cancelled],
+    "shipped" => [],
+    "cancelled" => []
+  }.freeze
+
   def create
     payload = params.permit(:user_id, items: [:product_id, :quantity])
     user_id = require_user_id(payload)
@@ -10,7 +18,23 @@ class OrdersController < ApplicationController
   end
 
   def index
-    render json: Order.detailed.order(:id).map(&:as_api_json)
+    orders = Order.detailed.order(:id)
+    status_filter = params[:status]
+    user_id_filter = params[:user_id]
+
+    if status_filter.present?
+      return render_error("Query parameter 'status' is invalid", :unprocessable_entity) unless VALID_ORDER_STATUSES.include?(status_filter)
+
+      orders = orders.where(status: status_filter)
+    end
+
+    if user_id_filter.present?
+      return render_error("Query parameter 'user_id' is invalid", :unprocessable_entity) unless user_id_filter.to_s.match?(/\A\d+\z/)
+
+      orders = orders.where(user_id: user_id_filter.to_i)
+    end
+
+    render json: orders.map(&:as_api_json)
   end
 
   def show
@@ -22,6 +46,8 @@ class OrdersController < ApplicationController
     status_value = params.permit(:status)[:status]
 
     return render_error("Field 'status' is required", :unprocessable_entity) unless status_value.is_a?(String) && status_value.strip != ""
+    return render_error("Field 'status' is invalid", :unprocessable_entity) unless VALID_ORDER_STATUSES.include?(status_value)
+    return render_error("Invalid order status transition", :conflict) unless ALLOWED_STATUS_TRANSITIONS.fetch(order.status).include?(status_value)
 
     order.update!(status: status_value)
     render json: Order.fetch_detailed!(order.id).as_api_json

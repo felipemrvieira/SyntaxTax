@@ -1,5 +1,7 @@
 class UsersController < ApplicationController
   def create
+    return render_error("Email already exists", :conflict) if User.exists?(email: params[:email])
+
     user = User.create!(params.permit(:name, :email))
     render json: serialize_user(user), status: :created
   end

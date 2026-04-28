@@ -26,9 +26,25 @@ class ProductsController extends Controller
         return response()->json($product, 201);
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Product::query()->orderBy('id')->get());
+        $query = Product::query()->orderBy('id');
+
+        if ($request->has('min_price')) {
+            if (! is_numeric($request->input('min_price')) || (float) $request->input('min_price') <= 0) {
+                return response()->json(['detail' => "Query parameter 'min_price' is invalid"], 422);
+            }
+            $query->where('price', '>=', (float) $request->input('min_price'));
+        }
+
+        if ($request->has('max_price')) {
+            if (! is_numeric($request->input('max_price')) || (float) $request->input('max_price') <= 0) {
+                return response()->json(['detail' => "Query parameter 'max_price' is invalid"], 422);
+            }
+            $query->where('price', '<=', (float) $request->input('max_price'));
+        }
+
+        return response()->json($query->get());
     }
 
     public function show(int $id): JsonResponse
