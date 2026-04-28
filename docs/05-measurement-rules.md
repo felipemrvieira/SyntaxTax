@@ -46,7 +46,7 @@ Interpretação:
 
 Observação:
 
-`total_tokens` pode ser inflado por lockfiles, arquivos extensos de configuração e outros artefatos operacionais que nem sempre entram no contexto útil de uma tarefa funcional.
+`total_tokens` inclui todo o corpus medido, mas esse corpus exclui lockfiles de dependência. O objetivo é evitar que metadados de resolução de pacote distorçam a comparação funcional entre stacks.
 
 ### `operational_ratio`
 
@@ -77,6 +77,30 @@ Não tratar `total_tokens` sozinho como verdade metodológica final.
 - .venv
 - dist
 - build
+- package-lock.json
+- composer.lock
+- Gemfile.lock
+- go.sum
+
+## Regra para manifests e lockfiles
+
+Arquivos de manifesto mantidos por humanos entram no corpus medido, porque ajudam a entender a configuração real da stack.
+
+Entram:
+
+- `package.json`
+- `composer.json`
+- `Gemfile`
+- `go.mod`
+
+Lockfiles de dependência ficam fora do corpus medido.
+
+Ficam fora:
+
+- `package-lock.json`
+- `composer.lock`
+- `Gemfile.lock`
+- `go.sum`
 
 ## Regras adicionais
 
@@ -120,9 +144,48 @@ Isso significa que:
 
 - algumas migrations podem permanecer em `handwritten.persistence`
 - alguns contratos estruturais podem ficar em `domain`
-- alguns artefatos operacionais podem pesar muito no `total_tokens`
+- alguns artefatos operacionais ainda podem pesar muito no `total_tokens`, mesmo sem lockfiles
 
 Essa assimetria é aceitável desde que seja auditável e explicitamente interpretada pela matriz acima.
+
+## Notas de classificação auditáveis
+
+As escolhas abaixo existem para tornar a categorização defensável quando a estrutura da stack não se encaixa de forma perfeitamente simétrica nas demais.
+
+### Migrations em `handwritten.persistence`
+
+Quando migrations definem ou evoluem a estrutura real do banco da aplicação, elas contam como implementação persistente handwritten.
+
+Justificativa:
+
+- codificam schema, constraints e evolução estrutural da aplicação
+- participam diretamente da lógica persistente entregue pelo app
+- não são tratadas como mero setup operacional de framework
+
+### `prisma/schema.prisma` em `domain`
+
+Nas stacks com Prisma, `prisma/schema.prisma` entra em `handwritten.domain`.
+
+Justificativa:
+
+- concentra a modelagem estrutural central das entidades e relações
+- define contratos fundamentais do domínio persistido
+- exerce papel análogo ao núcleo da modelagem em stacks onde esse desenho vive em entidades ORM
+
+Stacks afetadas:
+
+- `express`
+- `nestjs`
+
+### `slim` com `domain` vazio
+
+A stack `slim` mantém `handwritten.domain` vazio.
+
+Justificativa:
+
+- a implementação não introduz camada separada de modelagem de domínio
+- a estrutura funcional vive principalmente em handlers, configuração mínima e persistência via PDO/SQL
+- forçar uma camada `domain` artificial violaria a regra de não introduzir overengineering
 
 ## Interpretação da categoria `domain`
 

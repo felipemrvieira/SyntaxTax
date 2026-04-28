@@ -22,7 +22,7 @@ Esta é a métrica principal para comparar quanto código a LLM precisa ler para
 
 Representa o custo de contexto bruto do corpus medido.
 
-Esta métrica inclui tanto a lógica funcional quanto artefatos operacionais selecionados no benchmark, como arquivos de configuração, lockfiles e infraestrutura mínima.
+Esta métrica inclui tanto a lógica funcional quanto artefatos operacionais selecionados no benchmark, como arquivos de configuração, manifests mantidos por humanos e infraestrutura mínima. Lockfiles de dependência ficam fora do corpus medido.
 
 ### `operational_ratio`
 
@@ -38,4 +38,4 @@ O benchmark deve ser lido assim:
 - ranking complementar: `total_tokens`
 - métrica explicativa: `operational_ratio`
 
-Essa separação evita confundir custo de lógica de aplicação com custo de artefatos operacionais do ecossistema.
+Essa separação evita confundir custo de lógica de aplicação com metadados de dependência e outros artefatos operacionais do ecossistema.

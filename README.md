@@ -29,7 +29,7 @@ Regra de leitura:
 - comparação complementar: `total_tokens`
 - explicação de overhead: `operational_ratio`
 
-Isso evita confundir lógica de aplicação com lockfiles, configuração extensa e outros artefatos operacionais.
+Isso evita confundir lógica de aplicação com metadados de dependência, configuração extensa e outros artefatos operacionais.
 
 ## O que este projeto NÃO mede
 

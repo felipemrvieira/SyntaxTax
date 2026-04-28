@@ -12,6 +12,10 @@ global_exclude:
   - "**/.venv/**"
   - "**/dist/**"
   - "**/build/**"
+  - "**/package-lock.json"
+  - "**/composer.lock"
+  - "**/Gemfile.lock"
+  - "**/go.sum"
 
 stacks:
   fastapi:
@@ -115,7 +119,6 @@ stacks:
     operational_extras:
       config:
         - "package.json"
-        - "package-lock.json"
         - "tsconfig.json"
       migrations: []
 
@@ -169,7 +172,6 @@ stacks:
     operational_extras:
       config:
         - "composer.json"
-        - "composer.lock"
         - "bootstrap/app.php"
         - "config/**/*.php"
       migrations: []
@@ -239,7 +241,6 @@ stacks:
     operational_extras:
       config:
         - "go.mod"
-        - "go.sum"
       migrations: []
 
   slim:
@@ -261,5 +262,4 @@ stacks:
     operational_extras:
       config:
         - "composer.json"
-        - "composer.lock"
       migrations: []

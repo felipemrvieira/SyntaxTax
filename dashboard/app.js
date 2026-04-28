@@ -35,6 +35,7 @@ const STACKS_MANIFEST = [
       persistence: ["src/db/**/*.js", "prisma/migrations/**/*"],
     },
     operational: ["package.json"],
+    noteKeys: ["prisma_schema_domain"],
   },
   {
     id: "gin", framework: "Gin", language: "Go", orm: "GORM", category: "api_first",
@@ -43,7 +44,7 @@ const STACKS_MANIFEST = [
       api: ["handlers/**/*.go", "main.go"],
       persistence: ["db/**/*.go", "db/migrations/**/*.sql"],
     },
-    operational: ["go.mod", "go.sum"],
+    operational: ["go.mod"],
   },
   {
     id: "slim", framework: "Slim", language: "PHP", orm: "PDO SQLite", category: "api_first",
@@ -52,7 +53,8 @@ const STACKS_MANIFEST = [
       api: ["public/index.php", "config/*.php", "src/Handlers/**/*.php"],
       persistence: ["src/Db/**/*.php", "database/migrations/**/*.sql"],
     },
-    operational: ["composer.json", "composer.lock"],
+    operational: ["composer.json"],
+    noteKeys: ["slim_no_domain"],
   },
   {
     id: "rails", framework: "Rails", language: "Ruby", orm: "ActiveRecord", category: "opinionated",
@@ -79,7 +81,8 @@ const STACKS_MANIFEST = [
       api: ["src/main.ts", "src/app.module.ts", "src/{users,products,orders}/**/*.controller.ts", "src/{users,products,orders}/**/*.service.ts", "src/{users,products,orders}/**/*.module.ts"],
       persistence: ["src/prisma/**/*.ts", "prisma/migrations/**/*"],
     },
-    operational: ["package.json", "package-lock.json", "tsconfig.json"],
+    operational: ["package.json", "tsconfig.json"],
+    noteKeys: ["prisma_schema_domain"],
   },
   {
     id: "springboot", framework: "Spring Boot", language: "Java", orm: "Spring Data JPA", category: "opinionated",
@@ -97,7 +100,7 @@ const STACKS_MANIFEST = [
       api: ["routes/api.php", "app/Http/Controllers/**/*.php"],
       persistence: ["database/migrations/**/*.php"],
     },
-    operational: ["composer.json", "composer.lock", "bootstrap/app.php", "config/**/*.php"],
+    operational: ["composer.json", "bootstrap/app.php", "config/**/*.php"],
   },
 ];
 
@@ -121,13 +124,13 @@ const translations = {
     lensesTitle: "Official lenses",
     lensTotalTitle: "Total tokens",
     lensTotalBody:
-      "Measures the full textual cost of the measured repository: application code, configuration, lockfiles, and minimum infrastructure. This is the complementary lens.",
+      "Measures the full textual cost of the measured repository: application code, human-maintained manifests, configuration, and minimum infrastructure. Dependency lockfiles stay out of the measured corpus. This is the complementary lens.",
     lensHandwrittenTitle: "Handwritten tokens",
     lensHandwrittenBody:
       "Isolates the cost of code written to implement the application: API, domain, and directly modeled persistence. This is the benchmark's primary lens.",
     lensOperationalTitle: "Operational overhead",
     lensOperationalBody:
-      "Shows the structural weight of the ecosystem, especially lockfiles, configuration, and unavoidable operational artifacts.",
+      "Shows the structural weight of the ecosystem, especially manifests, configuration, and unavoidable operational artifacts.",
     globalTitle: "Global rankings",
     globalBody:
       "The rankings below follow the official reading order: handwritten first, total second, and operational ratio as explanatory context.",
@@ -354,30 +357,39 @@ const translations = {
         {
           name: "Handwritten tokens",
           color: "aqua",
-          desc: "Only the files implementing the application: domain models, API handlers, and persistence code. Excludes lockfiles and config.",
+          desc: "Only the files implementing the application: domain models, API handlers, and persistence code. Excludes manifests and framework config.",
           plain: "The cost of what a developer actually wrote — stripped of the ecosystem noise. This is the cleanest signal for comparing framework verbosity.",
         },
         {
           name: "Operational tokens",
           color: "slateblue",
-          desc: "Lockfiles (package-lock.json, Gemfile.lock), package manifests (package.json, composer.json), and framework config. Ecosystem overhead, not application logic.",
-          plain: "The \"entry fee\" of the stack — files the framework or package manager forces you to have, regardless of what your app does.",
+          desc: "Human-maintained manifests (package.json, composer.json, Gemfile, go.mod) and framework config. Ecosystem overhead, not application logic.",
+          plain: "The \"entry fee\" of the stack — files the framework requires to exist around the app, even when they are not domain logic.",
         },
         {
           name: "Operational ratio",
           color: "sand",
-          desc: "operational_tokens ÷ total_tokens. High values indicate stacks where lockfiles and config dominate the corpus over application code.",
+          desc: "operational_tokens ÷ total_tokens. High values indicate stacks where manifests and config dominate the corpus over application code.",
           plain: "What share of the total token budget is pure overhead. A ratio of 0.60 means 60% of the tokens an LLM reads are infrastructure, not your app.",
         },
       ],
-      browserTitle: "File browser — what gets measured",
-      browserBody:
-        "Each stack entry shows the exact file patterns that contribute to each measurement category, as defined in benchmark_config.yaml. Click any stack to expand.",
-      categoryColors: {
-        domain: "bg-aqua/30 text-slateblue",
-        api: "bg-ember/15 text-ember",
-        persistence: "bg-slateblue/10 text-slateblue",
-        operational: "bg-sand border border-black/10 text-slateblue/70",
+    browserTitle: "File browser — what gets measured",
+    browserBody:
+      "Each stack entry shows the exact file patterns that contribute to each measurement category, as defined in benchmark_config.yaml. Click any stack to expand.",
+    classificationNotesTitle: "Classification notes",
+    classificationNotesBody:
+      "These notes explain the few classification choices most likely to be questioned during audit.",
+    classificationNotes: [
+      "Migrations stay in handwritten.persistence when they encode the application's database structure and evolution, not just framework setup.",
+      "In Prisma stacks, prisma/schema.prisma stays in domain because it holds the central structural model of entities and relations.",
+      "Slim keeps an empty domain bucket because this implementation uses handlers plus raw PDO/SQL, without a separate domain modeling layer.",
+    ],
+    stackNotesLabel: "Stack-specific note",
+    categoryColors: {
+      domain: "bg-aqua/30 text-slateblue",
+      api: "bg-ember/15 text-ember",
+      persistence: "bg-slateblue/10 text-slateblue",
+      operational: "bg-sand border border-black/10 text-slateblue/70",
       },
       noDomainNote: "No domain layer — raw SQL / PDO without ORM abstraction",
       glossaryTitle: "Glossary",
@@ -401,7 +413,7 @@ const translations = {
         },
         {
           term: "Handwritten vs Operational",
-          def: "Handwritten = code a developer writes to solve the problem. Operational = files the framework or package manager forces you to have (like lockfiles). Both are included in the total token count.",
+          def: "Handwritten = code a developer writes to solve the problem. Operational = manifests and framework files required around the app. Dependency lockfiles stay out of the measured corpus.",
         },
       ],
     },
@@ -414,13 +426,13 @@ const translations = {
     lensesTitle: "Lentes oficiais",
     lensTotalTitle: "Tokens totais",
     lensTotalBody:
-      "Mede o custo textual completo do repositório medido: código da aplicação, configuração, lockfiles e infraestrutura mínima. Esta é a lente complementar.",
+      "Mede o custo textual completo do repositório medido: código da aplicação, manifests mantidos por humanos, configuração e infraestrutura mínima. Lockfiles de dependência ficam fora do corpus medido. Esta é a lente complementar.",
     lensHandwrittenTitle: "Tokens handwritten",
     lensHandwrittenBody:
       "Isola o custo do código escrito para implementar a aplicação: API, domínio e persistência diretamente modelada. Esta é a lente principal do benchmark.",
     lensOperationalTitle: "Sobrecarga operacional",
     lensOperationalBody:
-      "Mostra o peso estrutural do ecossistema, especialmente lockfiles, configuração e artefatos operacionais inevitáveis.",
+      "Mostra o peso estrutural do ecossistema, especialmente manifests, configuração e artefatos operacionais inevitáveis.",
     globalTitle: "Rankings globais",
     globalBody:
       "Os rankings abaixo seguem a ordem oficial de leitura: handwritten primeiro, total em seguida e razão operacional como contexto explicativo.",
@@ -647,30 +659,39 @@ const translations = {
         {
           name: "Tokens handwritten",
           color: "aqua",
-          desc: "Apenas os arquivos que implementam a aplicação: modelos de domínio, handlers de API e código de persistência. Exclui lockfiles e configs.",
+          desc: "Apenas os arquivos que implementam a aplicação: modelos de domínio, handlers de API e código de persistência. Exclui manifests e configs de framework.",
           plain: "O sinal principal: o que o desenvolvedor escreveu para resolver o problema, sem o ruído do ecossistema. É a melhor lente para comparar a verbosidade real dos frameworks.",
         },
         {
           name: "Tokens operacionais",
           color: "slateblue",
-          desc: "Lockfiles (package-lock.json, Gemfile.lock), manifests de pacotes (package.json, composer.json) e config de framework. Overhead do ecossistema, não lógica da aplicação.",
-          plain: "A \"taxa de entrada\" da stack — arquivos que o framework ou gerenciador de pacotes obriga a ter, independente do que a aplicação faz.",
+          desc: "Manifests mantidos por humanos (package.json, composer.json, Gemfile, go.mod) e config de framework. Overhead do ecossistema, não lógica da aplicação.",
+          plain: "A \"taxa de entrada\" da stack — arquivos que o framework exige ao redor da aplicação, mesmo quando eles não são lógica de domínio.",
         },
         {
           name: "Razão operacional",
           color: "sand",
-          desc: "operational_tokens ÷ total_tokens. Valores altos indicam stacks onde lockfiles e config dominam o corpus em relação ao código da aplicação.",
+          desc: "operational_tokens ÷ total_tokens. Valores altos indicam stacks onde manifests e config dominam o corpus em relação ao código da aplicação.",
           plain: "Qual fatia do orçamento total de tokens é puro overhead. Uma razão de 0,60 significa que 60% dos tokens que um LLM lê são infraestrutura, não a sua aplicação.",
         },
       ],
-      browserTitle: "Browser de arquivos — o que é medido",
-      browserBody:
-        "Cada entrada de stack mostra os padrões de arquivo exatos que contribuem para cada categoria de medição, conforme definido em benchmark_config.yaml. Clique em qualquer stack para expandir.",
-      categoryColors: {
-        domain: "bg-aqua/30 text-slateblue",
-        api: "bg-ember/15 text-ember",
-        persistence: "bg-slateblue/10 text-slateblue",
-        operational: "bg-sand border border-black/10 text-slateblue/70",
+    browserTitle: "Browser de arquivos — o que é medido",
+    browserBody:
+      "Cada entrada de stack mostra os padrões de arquivo exatos que contribuem para cada categoria de medição, conforme definido em benchmark_config.yaml. Clique em qualquer stack para expandir.",
+    classificationNotesTitle: "Notas de classificação",
+    classificationNotesBody:
+      "Estas notas explicam as poucas escolhas de classificação mais sujeitas a questionamento em auditoria.",
+    classificationNotes: [
+      "Migrations ficam em handwritten.persistence quando codificam a estrutura e a evolução do banco da aplicação, e não apenas setup de framework.",
+      "Nas stacks com Prisma, prisma/schema.prisma fica em domain porque concentra a modelagem estrutural central das entidades e relações.",
+      "Slim mantém o bucket domain vazio porque esta implementação usa handlers com PDO/SQL direto, sem uma camada separada de modelagem de domínio.",
+    ],
+    stackNotesLabel: "Nota da stack",
+    categoryColors: {
+      domain: "bg-aqua/30 text-slateblue",
+      api: "bg-ember/15 text-ember",
+      persistence: "bg-slateblue/10 text-slateblue",
+      operational: "bg-sand border border-black/10 text-slateblue/70",
       },
       noDomainNote: "Sem camada de domínio — SQL puro / PDO sem abstração ORM",
       glossaryTitle: "Glossário",
@@ -694,7 +715,7 @@ const translations = {
         },
         {
           term: "Handwritten vs Operacional",
-          def: "Handwritten = código que o desenvolvedor escreveu para resolver o problema. Operacional = arquivos que o framework ou gerenciador de pacotes obriga a ter (como lockfiles). Ambos entram na contagem total de tokens.",
+          def: "Handwritten = código que o desenvolvedor escreveu para resolver o problema. Operacional = manifests e arquivos de framework exigidos ao redor da aplicação. Lockfiles de dependência ficam fora do corpus medido.",
         },
       ],
     },
@@ -914,6 +935,14 @@ function renderAboutPage() {
   // File browser
   setText("about-browser-title", a.browserTitle);
   setText("about-browser-body", a.browserBody);
+  setText("about-classification-notes-title", a.classificationNotesTitle);
+  setText("about-classification-notes-body", a.classificationNotesBody);
+  document.getElementById("about-classification-notes-list").innerHTML = a.classificationNotes
+    .map(
+      (note) => `
+        <li class="rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm leading-7 text-slateblue/80 shadow-sm">${note}</li>`
+    )
+    .join("");
 
   renderFileBrowser("about-browser-group-apifirst", "api_first", a);
   renderFileBrowser("about-browser-group-opinionated", "opinionated", a);
@@ -984,6 +1013,7 @@ function renderFileBrowser(containerId, category, a) {
 
 function buildFilePanelHtml(stack, a) {
   const colors = a.categoryColors;
+  const stackNotes = resolveStackNotes(stack, a);
 
   function categoryBlock(label, colorClass, patterns, emptyNote) {
     if (patterns.length === 0 && !emptyNote) return "";
@@ -997,13 +1027,39 @@ function buildFilePanelHtml(stack, a) {
       </div>`;
   }
 
+  const notesBlock = stackNotes.length
+    ? `
+      <div class="mt-3 rounded-2xl border border-black/5 bg-white px-4 py-3">
+        <div class="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slateblue/45">${a.stackNotesLabel}</div>
+        <div class="space-y-2">
+          ${stackNotes.map((note) => `<p class="text-sm leading-7 text-slateblue/78">${note}</p>`).join("")}
+        </div>
+      </div>`
+    : "";
+
   return `
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       ${categoryBlock("domain", colors.domain, stack.handwritten.domain, a.noDomainNote)}
       ${categoryBlock("api", colors.api, stack.handwritten.api, "")}
       ${categoryBlock("persistence", colors.persistence, stack.handwritten.persistence, "")}
       ${categoryBlock("operational", colors.operational, stack.operational, "")}
-    </div>`;
+    </div>
+    ${notesBlock}`;
+}
+
+function resolveStackNotes(stack, a) {
+  const notes = {
+    prisma_schema_domain:
+      currentLocale === "pt-BR"
+        ? "prisma/schema.prisma foi classificado em domain porque é onde a modelagem estrutural central desta stack vive."
+        : "prisma/schema.prisma is classified as domain because it is where this stack's central structural model lives.",
+    slim_no_domain:
+      currentLocale === "pt-BR"
+        ? "O bucket domain fica vazio porque esta implementação trabalha com handlers e persistência direta, sem uma camada de domínio separada."
+        : "The domain bucket stays empty because this implementation works through handlers and direct persistence, without a separate domain layer.",
+  };
+
+  return (stack.noteKeys ?? []).map((key) => notes[key]).filter(Boolean);
 }
 
 // ── Author page ─────────────────────────────────────────────────────────────
