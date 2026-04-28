@@ -757,7 +757,7 @@ function sortedBy(rows, key, direction = "desc") {
 
 function createPanel(title, subtitle = "") {
   const panel = document.createElement("section");
-  panel.className = "rounded-[2rem] border border-black/5 bg-white p-6 shadow-panel";
+  panel.className = "rounded-[2rem] border border-black/5 bg-white p-4 sm:p-6 shadow-panel";
   panel.innerHTML = `
     <div class="mb-5">
       <h3 class="text-xl font-bold tracking-tight">${title}</h3>
