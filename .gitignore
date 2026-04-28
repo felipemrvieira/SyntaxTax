@@ -3,3 +3,8 @@ __pycache__/
 *.pyo
 *.pyd
 results/
+stacks/api-first/express-app/node_modules/
+stacks/api-first/slim-app/vendor/
+stacks/opinionated/nestjs-app/dist/
+stacks/opinionated/nestjs-app/node_modules/
+stacks/opinionated/springboot-app/target/
