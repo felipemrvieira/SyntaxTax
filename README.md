@@ -15,6 +15,22 @@ Comparar o custo textual de implementação de funcionalidades equivalentes em d
 - impacto de linguagem + framework + ORM + convenções
 - diferenças entre frameworks API-first e frameworks mais opinionados
 
+## Como ler os resultados
+
+O benchmark usa três leituras complementares:
+
+- `handwritten_tokens`: custo de contexto funcional da aplicação
+- `total_tokens`: custo de contexto bruto do corpus medido
+- `operational_ratio`: proporção de overhead estrutural fora da lógica handwritten
+
+Regra de leitura:
+
+- comparação principal: `handwritten_tokens`
+- comparação complementar: `total_tokens`
+- explicação de overhead: `operational_ratio`
+
+Isso evita confundir lógica de aplicação com lockfiles, configuração extensa e outros artefatos operacionais.
+
 ## O que este projeto NÃO mede
 
 - performance de runtime

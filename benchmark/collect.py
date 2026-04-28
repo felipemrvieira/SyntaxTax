@@ -69,10 +69,10 @@ ANALYSIS_CSV_FIELDNAMES = [
     "framework",
     "total_tokens",
     "handwritten_tokens",
+    "functional_tokens",
     "operational_tokens",
     "handwritten_ratio",
     "operational_ratio",
-    "normalized_tokens",
     "config_heavy_stack",
     "api_tokens",
     "domain_tokens",
@@ -236,10 +236,10 @@ def build_analysis_row(payload: dict[str, Any]) -> dict[str, Any]:
         "framework": metadata.get("framework"),
         "total_tokens": total_tokens,
         "handwritten_tokens": handwritten_tokens,
+        "functional_tokens": handwritten_tokens,
         "operational_tokens": operational_tokens,
         "handwritten_ratio": safe_ratio(handwritten_tokens, total_tokens),
         "operational_ratio": safe_ratio(operational_tokens, total_tokens),
-        "normalized_tokens": handwritten_tokens,
         "config_heavy_stack": operational_tokens > handwritten_tokens,
         "api_tokens": api_tokens,
         "domain_tokens": domain_tokens,
@@ -299,9 +299,14 @@ def write_analysis_csv(rows: list[dict[str, Any]]) -> Path:
 
 
 def print_analysis_summary(rows: list[dict[str, Any]]) -> None:
+    ranking_by_functional = sorted(rows, key=lambda row: (-int(row["functional_tokens"]), str(row["stack_id"])))
     ranking_by_total = sorted(rows, key=lambda row: (-int(row["total_tokens"]), str(row["stack_id"])))
     ranking_by_handwritten = sorted(rows, key=lambda row: (-int(row["handwritten_tokens"]), str(row["stack_id"])))
     config_heavy_rows = [row for row in rows if bool(row["config_heavy_stack"])]
+
+    print("Primary ranking by functional_tokens:")
+    for index, row in enumerate(ranking_by_functional, start=1):
+        print(f"{index}. {row['stack_id']} ({row['functional_tokens']})")
 
     print("Ranking by total_tokens:")
     for index, row in enumerate(ranking_by_total, start=1):

@@ -16,6 +16,58 @@ Código diretamente escrito para implementar a lógica.
 
 Configuração, migrations e infraestrutura mínima.
 
+## Matriz oficial de leitura
+
+As medições devem ser interpretadas por três métricas oficiais:
+
+- `handwritten_tokens`
+- `total_tokens`
+- `operational_ratio`
+
+### `handwritten_tokens`
+
+É a soma dos tokens da view `handwritten`.
+
+Interpretação:
+
+- custo de contexto funcional
+- métrica principal do benchmark
+- melhor proxy para tarefas de implementação, leitura e manutenção da lógica da aplicação
+
+### `total_tokens`
+
+É a soma de todos os tokens medidos na stack.
+
+Interpretação:
+
+- custo de contexto bruto do corpus selecionado
+- métrica complementar
+- útil para estimar o peso total do repositório medido sobre uma LLM
+
+Observação:
+
+`total_tokens` pode ser inflado por lockfiles, arquivos extensos de configuração e outros artefatos operacionais que nem sempre entram no contexto útil de uma tarefa funcional.
+
+### `operational_ratio`
+
+É a razão entre `operational_extras.tokens` e `total_tokens`.
+
+Interpretação:
+
+- indicador de overhead estrutural
+- métrica explicativa
+- não deve ser usada como ranking isolado da qualidade da stack
+
+## Regra de apresentação dos resultados
+
+Qualquer tabela, CSV analítico, dashboard ou resumo textual deve:
+
+- destacar `handwritten_tokens` como ranking principal
+- mostrar `total_tokens` como leitura complementar
+- mostrar `operational_ratio` para explicar diferenças de overhead
+
+Não tratar `total_tokens` sozinho como verdade metodológica final.
+
 ## Exclusões
 
 - spec
@@ -59,6 +111,18 @@ Registrar métricas por:
 - categoria
 - view
 - stack
+
+## Observação sobre taxonomia
+
+A medição continua baseada na função real dos arquivos em cada stack, conforme definido no `benchmark_config.yaml`.
+
+Isso significa que:
+
+- algumas migrations podem permanecer em `handwritten.persistence`
+- alguns contratos estruturais podem ficar em `domain`
+- alguns artefatos operacionais podem pesar muito no `total_tokens`
+
+Essa assimetria é aceitável desde que seja auditável e explicitamente interpretada pela matriz acima.
 
 ## Interpretação da categoria `domain`
 

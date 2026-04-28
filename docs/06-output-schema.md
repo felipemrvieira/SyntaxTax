@@ -258,6 +258,42 @@ Campos obrigatórios de cada item:
 
 Totais agregados da stack inteira.
 
+O campo `totals.tokens` representa o valor usado como `total_tokens` na análise consolidada.
+
+### `views.handwritten.totals.tokens`
+
+Representa o valor usado como `handwritten_tokens` na análise consolidada.
+
+Esta é a métrica principal de comparação metodológica entre stacks.
+
+### `views.operational_extras.totals.tokens`
+
+Representa o valor usado como `operational_tokens` na análise consolidada.
+
+Ele serve de base para a derivação de `operational_ratio`.
+
+## Camada analítica consolidada
+
+Além do JSON bruto por stack, a coleta consolidada pode expor campos analíticos derivados.
+
+Campos esperados na análise:
+
+- `total_tokens`: alias analítico de `totals.tokens`
+- `handwritten_tokens`: alias analítico de `views.handwritten.totals.tokens`
+- `functional_tokens`: alias analítico de `handwritten_tokens`
+- `operational_tokens`: alias analítico de `views.operational_extras.totals.tokens`
+- `operational_ratio`: razão entre `operational_tokens` e `total_tokens`
+
+## Regra de interpretação do schema
+
+O schema bruto continua neutro e auditável.
+
+A interpretação oficial dos resultados deve seguir:
+
+- `handwritten_tokens` como métrica principal
+- `total_tokens` como métrica complementar
+- `operational_ratio` como métrica explicativa
+
 Campos:
 
 - `tokens`

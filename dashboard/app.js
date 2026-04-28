@@ -117,20 +117,20 @@ const translations = {
     htmlLang: "en",
     heroTitle: "A comparative view that prioritizes the most context-efficient web stacks.",
     heroBody:
-      "This dashboard summarizes the benchmark methodology, separates the analysis lenses, and orders stacks by context efficiency without confusing application cost with operational inflation.",
+      "This dashboard summarizes the benchmark methodology, separates the official analysis lenses, and keeps functional application cost distinct from repository-wide and operational overhead.",
     lensesTitle: "Official lenses",
     lensTotalTitle: "Total tokens",
     lensTotalBody:
-      "Measures the full textual cost of the measured repository: application code, configuration, and minimum infrastructure.",
+      "Measures the full textual cost of the measured repository: application code, configuration, lockfiles, and minimum infrastructure. This is the complementary lens.",
     lensHandwrittenTitle: "Handwritten tokens",
     lensHandwrittenBody:
-      "Isolates the cost of code written to implement the application: API, domain, and directly modeled persistence.",
+      "Isolates the cost of code written to implement the application: API, domain, and directly modeled persistence. This is the benchmark's primary lens.",
     lensOperationalTitle: "Operational overhead",
     lensOperationalBody:
       "Shows the structural weight of the ecosystem, especially lockfiles, configuration, and unavoidable operational artifacts.",
     globalTitle: "Global rankings",
     globalBody:
-      "The rankings below prioritize lower cost and lower operational overhead, so the first positions represent the most economical stacks.",
+      "The rankings below follow the official reading order: handwritten first, total second, and operational ratio as explanatory context.",
     guidedTitle: "Guided reading",
     guidedBody:
       "Concrete examples derived from the current snapshot to show how the lenses help identify which stacks deliver more with less context.",
@@ -139,9 +139,9 @@ const translations = {
       "Each table ranks stacks within their natural group: API-first microframeworks and opinionated frameworks, with lower cost at the top.",
     howTitle: "How to read the numbers",
     how1:
-      "<strong>Total tokens</strong> is the best lens to estimate the full context cost an LLM must absorb to operate on a complete stack. Lower is better.",
+      "<strong>Handwritten tokens</strong> is the primary lens. It best approximates the context an LLM needs to understand and change the application logic. Lower is better.",
     how2:
-      "<strong>Handwritten tokens</strong> is the best lens to compare the implementation cost of the same application without letting lockfiles and ecosystem dominate the reading. Lower is better.",
+      "<strong>Total tokens</strong> is the complementary lens. It measures the full repository corpus selected by the methodology, including operational overhead. Lower is better, but it should not replace the handwritten reading.",
     how3:
       "<strong>API, domain, and persistence</strong> help locate where each stack spends tokens: HTTP layer, core modeling, or persistence modeling.",
     how4:
@@ -182,8 +182,8 @@ const translations = {
         text: "handwritten isolates application code. operational_extras captures configuration and minimum infrastructure.",
       },
       {
-        title: "Fair comparison",
-        text: "Stacks are compared within methodological groups and also globally, using distinct lenses.",
+        title: "Official reading order",
+        text: "handwritten_tokens is primary, total_tokens is complementary, and operational_ratio explains structural overhead.",
       },
     ],
     methodologyGrid: [
@@ -193,8 +193,8 @@ const translations = {
       ["Granularity", "Metrics by file, category, view, and stack."],
     ],
     heroStats: {
-      total: "Lowest total corpus",
-      handwritten: "Lowest handwritten cost",
+      handwritten: "Primary: lowest handwritten cost",
+      total: "Complementary: lowest total corpus",
       operational: "Lowest operational ratio",
     },
     snapshot: {
@@ -204,15 +204,15 @@ const translations = {
       unavailable: "snapshot unavailable",
     },
     rankings: {
-      totalTitle: "Lowest total cost",
-      totalSubtitle: "#1 represents the stack with the fewest total tokens.",
-      handwrittenTitle: "Lowest handwritten cost",
+      handwrittenTitle: "Primary ranking: lowest handwritten cost",
       handwrittenSubtitle: "#1 represents the stack with the least measured application code.",
+      totalTitle: "Complementary ranking: lowest total cost",
+      totalSubtitle: "#1 represents the stack with the fewest total tokens in the measured corpus.",
       operationalTitle: "Lowest operational overhead",
-      operationalSubtitle: "#1 represents the stack with the lowest relative operational weight.",
+      operationalSubtitle: "#1 represents the stack with the lowest relative operational weight. This is explanatory, not the main ranking.",
     },
     categorySectionSubtitle:
-      "Table sorted by lowest handwritten cost. Total cost and operational ratio reinforce the overall efficiency reading.",
+      "Table sorted by handwritten cost first. Total cost and operational ratio remain visible as complementary and explanatory lenses.",
     tableHeaders: {
       stack: "Stack",
       total: "Total",
@@ -225,24 +225,24 @@ const translations = {
     },
     positions: {
       total: "total efficiency",
-      handwritten: "handwritten efficiency",
+      handwritten: "primary handwritten efficiency",
       operational: "operational efficiency",
     },
     guidedCards: {
-      total: {
-        title: "Lowest total corpus",
-        text: (row) =>
-          `${row.framework} leads total efficiency with ${formatInt(row.total_tokens)} tokens. This suggests the lowest full-context cost to operate the complete stack.`,
-      },
       handwritten: {
-        title: "Lowest application cost",
+        title: "Primary winner: lowest application cost",
         text: (row) =>
-          `${row.framework} leads handwritten efficiency with ${formatInt(row.handwritten_tokens)} tokens. This is closer to the cost of the code actually written for the application.`,
+          `${row.framework} leads the primary handwritten ranking with ${formatInt(row.handwritten_tokens)} tokens. This is the closest metric to the cost of the code actually written for the application.`,
+      },
+      total: {
+        title: "Complementary winner: lowest total corpus",
+        text: (row) =>
+          `${row.framework} leads the complementary total ranking with ${formatInt(row.total_tokens)} tokens. This reflects the smallest measured repository corpus, including operational artifacts.`,
       },
       operational: {
         title: "Lowest operational pressure",
         text: (row) =>
-          `${row.framework} has ${ratio(row.operational_ratio)} of operational weight. Cases like this tend to preserve total efficiency without letting infrastructure dominate the reading.`,
+          `${row.framework} has ${ratio(row.operational_ratio)} of operational weight. This helps explain which stacks preserve efficiency without letting infrastructure dominate the corpus.`,
       },
     },
     configHeavy: {
@@ -410,20 +410,20 @@ const translations = {
     htmlLang: "pt-BR",
     heroTitle: "Uma leitura comparativa para priorizar as stacks mais econômicas em contexto.",
     heroBody:
-      "Este painel resume a metodologia do benchmark, separa as lentes de análise e ordena as stacks a partir da economia de contexto, sem misturar custo de aplicação com inflação operacional.",
+      "Este painel resume a metodologia do benchmark, separa as lentes oficiais de análise e mantém distinto o custo funcional da aplicação, o tamanho total do repositório medido e o overhead operacional.",
     lensesTitle: "Lentes oficiais",
     lensTotalTitle: "Tokens totais",
     lensTotalBody:
-      "Mede o custo textual completo do repositório medido: código da aplicação, configuração e infraestrutura mínima.",
+      "Mede o custo textual completo do repositório medido: código da aplicação, configuração, lockfiles e infraestrutura mínima. Esta é a lente complementar.",
     lensHandwrittenTitle: "Tokens handwritten",
     lensHandwrittenBody:
-      "Isola o custo do código escrito para implementar a aplicação: API, domínio e persistência diretamente modelada.",
+      "Isola o custo do código escrito para implementar a aplicação: API, domínio e persistência diretamente modelada. Esta é a lente principal do benchmark.",
     lensOperationalTitle: "Sobrecarga operacional",
     lensOperationalBody:
       "Mostra o peso estrutural do ecossistema, especialmente lockfiles, configuração e artefatos operacionais inevitáveis.",
     globalTitle: "Rankings globais",
     globalBody:
-      "Os rankings abaixo priorizam menor custo e menor sobrecarga operacional, para que as primeiras posições representem as stacks mais econômicas.",
+      "Os rankings abaixo seguem a ordem oficial de leitura: handwritten primeiro, total em seguida e razão operacional como contexto explicativo.",
     guidedTitle: "Leitura guiada",
     guidedBody:
       "Exemplos concretos, derivados do snapshot atual, para mostrar como as lentes ajudam a identificar quais stacks entregam mais com menos contexto.",
@@ -432,9 +432,9 @@ const translations = {
       "Cada tabela ranqueia as stacks dentro do seu grupo natural: microframeworks API-first e frameworks opinionated, com menor custo no topo.",
     howTitle: "Como ler os números",
     how1:
-      "<strong>Tokens totais</strong> é a melhor lente para estimar o custo total de contexto que uma LLM precisa absorver ao operar sobre uma stack completa. Menor valor é melhor.",
+      "<strong>Tokens handwritten</strong> é a lente principal. Ela melhor aproxima o contexto de que uma LLM precisa para entender e alterar a lógica da aplicação. Menor valor é melhor.",
     how2:
-      "<strong>Tokens handwritten</strong> é a melhor lente para comparar o custo de implementação da mesma aplicação, sem deixar lockfiles e ecossistema dominarem a leitura. Menor valor é melhor.",
+      "<strong>Tokens totais</strong> é a lente complementar. Ela mede o corpus completo selecionado pela metodologia, incluindo overhead operacional. Menor valor é melhor, mas não substitui a leitura handwritten.",
     how3:
       "<strong>API, domínio e persistência</strong> ajudam a localizar onde cada stack gasta tokens: camada HTTP, modelagem central ou modelagem persistente.",
     how4:
@@ -475,8 +475,8 @@ const translations = {
         text: "handwritten separa código de aplicação. operational_extras captura configuração e infraestrutura mínima.",
       },
       {
-        title: "Comparação justa",
-        text: "As stacks são comparadas dentro de grupos metodológicos e também globalmente, com lentes distintas.",
+        title: "Ordem oficial de leitura",
+        text: "handwritten_tokens é principal, total_tokens é complementar e operational_ratio explica o overhead estrutural.",
       },
     ],
     methodologyGrid: [
@@ -486,8 +486,8 @@ const translations = {
       ["Granularidade", "Métricas por arquivo, categoria, view e stack."],
     ],
     heroStats: {
-      total: "Menor corpus total",
-      handwritten: "Menor handwritten",
+      handwritten: "Principal: menor handwritten",
+      total: "Complementar: menor corpus total",
       operational: "Menor razão operacional",
     },
     snapshot: {
@@ -497,15 +497,15 @@ const translations = {
       unavailable: "snapshot indisponível",
     },
     rankings: {
-      totalTitle: "Menor custo total",
-      totalSubtitle: "#1 representa a stack com menos tokens totais.",
-      handwrittenTitle: "Menor custo handwritten",
+      handwrittenTitle: "Ranking principal: menor custo handwritten",
       handwrittenSubtitle: "#1 representa a stack com menos código de aplicação medido.",
+      totalTitle: "Ranking complementar: menor custo total",
+      totalSubtitle: "#1 representa a stack com menos tokens totais no corpus medido.",
       operationalTitle: "Menor sobrecarga operacional",
-      operationalSubtitle: "#1 representa a stack com menor peso operacional relativo.",
+      operationalSubtitle: "#1 representa a stack com menor peso operacional relativo. Esta é uma lente explicativa, não o ranking principal.",
     },
     categorySectionSubtitle:
-      "Tabela ordenada por menor custo handwritten. As colunas de total e razão operacional reforçam a leitura de economia geral.",
+      "Tabela ordenada primeiro por custo handwritten. As colunas de total e razão operacional ficam visíveis como lentes complementar e explicativa.",
     tableHeaders: {
       stack: "Stack",
       total: "Total",
@@ -518,24 +518,24 @@ const translations = {
     },
     positions: {
       total: "economia total",
-      handwritten: "economia handwritten",
+      handwritten: "economia handwritten principal",
       operational: "economia operacional",
     },
     guidedCards: {
-      total: {
-        title: "Menor corpus total",
-        text: (row) =>
-          `${row.framework} lidera em economia total com ${formatInt(row.total_tokens)} tokens. Isso sugere menor custo integral de contexto para operar a stack completa.`,
-      },
       handwritten: {
-        title: "Menor custo de aplicação",
+        title: "Vencedora principal: menor custo de aplicação",
         text: (row) =>
-          `${row.framework} lidera em economia handwritten com ${formatInt(row.handwritten_tokens)} tokens. Aqui a leitura é mais próxima do custo do código realmente escrito para a aplicação.`,
+          `${row.framework} lidera o ranking principal handwritten com ${formatInt(row.handwritten_tokens)} tokens. Aqui a leitura é a mais próxima do custo do código realmente escrito para a aplicação.`,
+      },
+      total: {
+        title: "Vencedora complementar: menor corpus total",
+        text: (row) =>
+          `${row.framework} lidera o ranking complementar de total com ${formatInt(row.total_tokens)} tokens. Isso reflete o menor corpus total medido, incluindo artefatos operacionais.`,
       },
       operational: {
         title: "Menor pressão operacional",
         text: (row) =>
-          `${row.framework} tem ${ratio(row.operational_ratio)} de peso operacional. Esse tipo de caso tende a preservar melhor a economia total sem deixar a infraestrutura dominar a leitura.`,
+          `${row.framework} tem ${ratio(row.operational_ratio)} de peso operacional. Isso ajuda a explicar quais stacks preservam melhor a eficiência sem deixar a infraestrutura dominar o corpus.`,
       },
     },
     configHeavy: {
@@ -641,14 +641,14 @@ const translations = {
         {
           name: "Tokens totais",
           color: "ember",
-          desc: "Todos os arquivos medidos juntos — código handwritten mais extras operacionais. Este é o custo total de contexto da stack.",
-          plain: "Em termos de LLM: o custo total do context window para carregar essa stack. Menor = o modelo retém mais memória de trabalho para a sua tarefa.",
+          desc: "Todos os arquivos medidos juntos — código handwritten mais extras operacionais. Esta é a lente complementar de custo de contexto bruto.",
+          plain: "Em termos de LLM: o custo total do context window para carregar essa stack. Importa, mas deve ser lido junto com handwritten para não confundir aplicação com overhead.",
         },
         {
           name: "Tokens handwritten",
           color: "aqua",
           desc: "Apenas os arquivos que implementam a aplicação: modelos de domínio, handlers de API e código de persistência. Exclui lockfiles e configs.",
-          plain: "O sinal limpo: o que o desenvolvedor escreveu para resolver o problema, sem o ruído do ecossistema. É a melhor lente para comparar a verbosidade real dos frameworks.",
+          plain: "O sinal principal: o que o desenvolvedor escreveu para resolver o problema, sem o ruído do ecossistema. É a melhor lente para comparar a verbosidade real dos frameworks.",
         },
         {
           name: "Tokens operacionais",
@@ -1170,19 +1170,19 @@ function setupLocaleSwitcher() {
 
 function renderHeroStats(rows) {
   const copy = getCopy();
-  const leanestTotal = sortedBy(rows, "total_tokens", "asc")[0];
   const leanestHandwritten = sortedBy(rows, "handwritten_tokens", "asc")[0];
+  const leanestTotal = sortedBy(rows, "total_tokens", "asc")[0];
   const leanestOperational = sortedBy(rows, "operational_ratio", "asc")[0];
   const cards = [
-    {
-      label: copy.heroStats.total,
-      value: leanestTotal.framework,
-      meta: `${formatInt(leanestTotal.total_tokens)} tokens`,
-    },
     {
       label: copy.heroStats.handwritten,
       value: leanestHandwritten.framework,
       meta: `${formatInt(leanestHandwritten.handwritten_tokens)} tokens`,
+    },
+    {
+      label: copy.heroStats.total,
+      value: leanestTotal.framework,
+      meta: `${formatInt(leanestTotal.total_tokens)} tokens`,
     },
     {
       label: copy.heroStats.operational,
@@ -1518,15 +1518,6 @@ function renderGlobalRankings(rows) {
   container.innerHTML = "";
   container.append(
     renderRankingCard(
-      copy.rankings.totalTitle,
-      "total_tokens",
-      rows,
-      formatInt,
-      "bg-ember/20 text-ember",
-      "asc",
-      copy.rankings.totalSubtitle
-    ),
-    renderRankingCard(
       copy.rankings.handwrittenTitle,
       "handwritten_tokens",
       rows,
@@ -1534,6 +1525,15 @@ function renderGlobalRankings(rows) {
       "bg-aqua/30 text-slateblue",
       "asc",
       copy.rankings.handwrittenSubtitle
+    ),
+    renderRankingCard(
+      copy.rankings.totalTitle,
+      "total_tokens",
+      rows,
+      formatInt,
+      "bg-ember/20 text-ember",
+      "asc",
+      copy.rankings.totalSubtitle
     ),
     renderRankingCard(
       copy.rankings.operationalTitle,
@@ -1611,17 +1611,17 @@ function renderCategorySection(categoryGroup, analysisRows) {
 
 function renderGuidedInsights(rows) {
   const copy = getCopy();
-  const byTotal = sortedBy(rows, "total_tokens", "asc");
   const byHandwritten = sortedBy(rows, "handwritten_tokens", "asc");
+  const byTotal = sortedBy(rows, "total_tokens", "asc");
   const byOperational = sortedBy(rows, "operational_ratio", "asc");
   const cards = [
     {
-      title: copy.guidedCards.total.title,
-      text: copy.guidedCards.total.text(byTotal[0]),
-    },
-    {
       title: copy.guidedCards.handwritten.title,
       text: copy.guidedCards.handwritten.text(byHandwritten[0]),
+    },
+    {
+      title: copy.guidedCards.total.title,
+      text: copy.guidedCards.total.text(byTotal[0]),
     },
     {
       title: copy.guidedCards.operational.title,
@@ -1654,10 +1654,10 @@ function enrichAnalysisRows(analysisRows, summaryRows) {
     ...row,
     total_tokens: toNumber(row.total_tokens),
     handwritten_tokens: toNumber(row.handwritten_tokens),
+    functional_tokens: toNumber(row.functional_tokens ?? row.handwritten_tokens),
     operational_tokens: toNumber(row.operational_tokens),
     handwritten_ratio: Number(row.handwritten_ratio),
     operational_ratio: Number(row.operational_ratio),
-    normalized_tokens: toNumber(row.normalized_tokens),
     config_heavy_stack: row.config_heavy_stack === "True",
     api_tokens: toNumber(row.api_tokens),
     domain_tokens: toNumber(row.domain_tokens),

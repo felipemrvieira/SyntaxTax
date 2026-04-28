@@ -231,6 +231,15 @@ def run_validation(base_url: str) -> dict[str, Any]:
         require_keys(user, ["id", "name", "email"], "get_user_by_id response")
         expect(user["id"] == user_id, "get_user_by_id returned unexpected id")
 
+    def test_user_not_found() -> None:
+        payload = request_json(
+            session,
+            "GET",
+            join_url(base_url, "/users/999999"),
+            expected_statuses={404},
+        )
+        expect(payload is not None, "user_not_found must return a JSON body")
+
     def test_reject_duplicate_user_email() -> None:
         primary = require_created(users, "primary", "create_users must succeed before reject_duplicate_user_email")
         payload = request_json(
@@ -241,6 +250,25 @@ def run_validation(base_url: str) -> dict[str, Any]:
             json_body={"name": "Felipe Clone", "email": primary["email"]},
         )
         expect(payload is not None, "reject_duplicate_user_email must return a JSON body")
+
+    def test_reject_user_with_missing_required_fields() -> None:
+        payload_1 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/users"),
+            expected_statuses={400, 422},
+            json_body={"email": f"missing-name-{unique}@example.com"},
+        )
+        expect(payload_1 is not None, "reject_user_with_missing_required_fields missing name must return a JSON body")
+
+        payload_2 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/users"),
+            expected_statuses={400, 422},
+            json_body={"name": "Missing Email"},
+        )
+        expect(payload_2 is not None, "reject_user_with_missing_required_fields missing email must return a JSON body")
 
     def test_create_products() -> None:
         definitions = [
@@ -279,6 +307,15 @@ def run_validation(base_url: str) -> dict[str, Any]:
         require_keys(product, ["id", "name", "price"], "get_product_by_id response")
         expect(product["id"] == products["notebook"]["id"], "get_product_by_id returned unexpected id")
 
+    def test_product_not_found() -> None:
+        payload = request_json(
+            session,
+            "GET",
+            join_url(base_url, "/products/999999"),
+            expected_statuses={404},
+        )
+        expect(payload is not None, "product_not_found must return a JSON body")
+
     def test_reject_product_with_invalid_price() -> None:
         payload = request_json(
             session,
@@ -288,6 +325,25 @@ def run_validation(base_url: str) -> dict[str, Any]:
             json_body={"name": f"Broken Price {unique}", "price": 0},
         )
         expect(payload is not None, "reject_product_with_invalid_price must return a JSON body")
+
+    def test_reject_product_with_missing_required_fields() -> None:
+        payload_1 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/products"),
+            expected_statuses={400, 422},
+            json_body={"price": 100.0},
+        )
+        expect(payload_1 is not None, "reject_product_with_missing_required_fields missing name must return a JSON body")
+
+        payload_2 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/products"),
+            expected_statuses={400, 422},
+            json_body={"name": f"Missing Price {unique}"},
+        )
+        expect(payload_2 is not None, "reject_product_with_missing_required_fields missing price must return a JSON body")
 
     def test_filter_products_by_min_price() -> None:
         notebook = require_created(products, "notebook", "create_products must succeed before filter_products_by_min_price")
@@ -487,6 +543,61 @@ def run_validation(base_url: str) -> dict[str, Any]:
         )
         expect(order["id"] == shippable["id"], "order_total_and_get_by_id returned unexpected order id")
 
+    def test_order_not_found() -> None:
+        payload = request_json(
+            session,
+            "GET",
+            join_url(base_url, "/orders/999999"),
+            expected_statuses={404},
+        )
+        expect(payload is not None, "order_not_found must return a JSON body")
+
+    def test_reject_order_with_missing_required_fields() -> None:
+        primary_user = require_created(users, "primary", "create_users must succeed before reject_order_with_missing_required_fields")
+        mouse = require_created(products, "mouse", "create_products must succeed before reject_order_with_missing_required_fields")
+
+        payload_1 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/orders"),
+            expected_statuses={400, 422},
+            json_body={"items": [{"product_id": mouse["id"], "quantity": 1}]},
+        )
+        expect(payload_1 is not None, "reject_order_with_missing_required_fields missing user_id must return a JSON body")
+
+        payload_2 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/orders"),
+            expected_statuses={400, 422},
+            json_body={"user_id": primary_user["id"]},
+        )
+        expect(payload_2 is not None, "reject_order_with_missing_required_fields missing items must return a JSON body")
+
+        payload_3 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/orders"),
+            expected_statuses={400, 422},
+            json_body={
+                "user_id": primary_user["id"],
+                "items": [{"quantity": 1}],
+            },
+        )
+        expect(payload_3 is not None, "reject_order_with_missing_required_fields missing product_id must return a JSON body")
+
+        payload_4 = request_json(
+            session,
+            "POST",
+            join_url(base_url, "/orders"),
+            expected_statuses={400, 422},
+            json_body={
+                "user_id": primary_user["id"],
+                "items": [{"product_id": mouse["id"]}],
+            },
+        )
+        expect(payload_4 is not None, "reject_order_with_missing_required_fields missing quantity must return a JSON body")
+
     def test_update_order_status_to_paid() -> None:
         shippable = require_created(orders, "shippable", "create_orders must succeed before update_order_status_to_paid")
         payload = request_json(
@@ -552,6 +663,17 @@ def run_validation(base_url: str) -> dict[str, Any]:
         )
         expect(payload is not None, "reject_invalid_order_status_value must return a JSON body")
 
+    def test_reject_order_status_update_with_missing_status() -> None:
+        created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before reject_order_status_update_with_missing_status")
+        payload = request_json(
+            session,
+            "PATCH",
+            join_url(base_url, f"/orders/{created_secondary['id']}/status"),
+            expected_statuses={400, 422},
+            json_body={},
+        )
+        expect(payload is not None, "reject_order_status_update_with_missing_status must return a JSON body")
+
     def test_reject_invalid_order_status_transition() -> None:
         shippable = require_created(orders, "shippable", "update_order_status_to_shipped must succeed before reject_invalid_order_status_transition")
         payload = request_json(
@@ -562,6 +684,16 @@ def run_validation(base_url: str) -> dict[str, Any]:
             json_body={"status": "created"},
         )
         expect(payload is not None, "reject_invalid_order_status_transition must return a JSON body")
+
+    def test_order_status_update_not_found() -> None:
+        payload = request_json(
+            session,
+            "PATCH",
+            join_url(base_url, "/orders/999999/status"),
+            expected_statuses={404},
+            json_body={"status": "paid"},
+        )
+        expect(payload is not None, "order_status_update_not_found must return a JSON body")
 
     def test_filter_orders_by_status() -> None:
         created_secondary = require_created(orders, "created_secondary", "create_orders must succeed before filter_orders_by_status")
@@ -697,9 +829,13 @@ def run_validation(base_url: str) -> dict[str, Any]:
         ("create_users", test_create_users),
         ("list_users", test_list_users),
         ("get_user_by_id", test_get_user_by_id),
+        ("user_not_found", test_user_not_found),
         ("reject_duplicate_user_email", test_reject_duplicate_user_email),
+        ("reject_user_with_missing_required_fields", test_reject_user_with_missing_required_fields),
         ("create_products", test_create_products),
+        ("product_not_found", test_product_not_found),
         ("reject_product_with_invalid_price", test_reject_product_with_invalid_price),
+        ("reject_product_with_missing_required_fields", test_reject_product_with_missing_required_fields),
         ("filter_products_by_min_price", test_filter_products_by_min_price),
         ("filter_products_by_max_price", test_filter_products_by_max_price),
         ("filter_products_by_price_range", test_filter_products_by_price_range),
@@ -708,11 +844,15 @@ def run_validation(base_url: str) -> dict[str, Any]:
         ("create_order_without_items", test_create_order_without_items),
         ("create_order_with_invalid_quantity", test_create_order_with_invalid_quantity),
         ("order_total_and_get_by_id", test_order_total_and_get_by_id),
+        ("order_not_found", test_order_not_found),
+        ("reject_order_with_missing_required_fields", test_reject_order_with_missing_required_fields),
         ("update_order_status_to_paid", test_update_order_status_to_paid),
         ("update_order_status_to_shipped", test_update_order_status_to_shipped),
         ("cancel_second_order", test_cancel_second_order),
         ("reject_invalid_order_status_value", test_reject_invalid_order_status_value),
+        ("reject_order_status_update_with_missing_status", test_reject_order_status_update_with_missing_status),
         ("reject_invalid_order_status_transition", test_reject_invalid_order_status_transition),
+        ("order_status_update_not_found", test_order_status_update_not_found),
         ("filter_orders_by_status", test_filter_orders_by_status),
         ("filter_orders_by_user_id", test_filter_orders_by_user_id),
         ("filter_orders_by_status_and_user_id", test_filter_orders_by_status_and_user_id),
